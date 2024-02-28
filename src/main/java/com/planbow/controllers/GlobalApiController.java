@@ -26,9 +26,11 @@ public class GlobalApiController {
     }
 
     @PostMapping("/get-organizations")
-    public ResponseEntity<ResponseJsonHandler> getOrganization(@RequestBody RequestJsonHandler requestJsonHandler){
-        String userId  = requestJsonHandler.getStringValue("userId");
-        return globalApiService.getOrganizations(userId);
+    public ResponseEntity<ResponseJsonHandler> getOrganization(@RequestBody String requestJsonHandler){
+        //String userId  = requestJsonHandler.getStringValue("userId");
+        System.out.println("userId "+requestJsonHandler);
+        return null;
+        //return globalApiService.getOrganizations(userId);
     }
 
     @PostMapping("/create-organization")
