@@ -1,58 +1,7 @@
 spring:
   application:
     name: planbow-api
-  mail:
-    host: smtp.gmail.com
-    port: 465
-    username: startrandomz@gmail.com
-    password: rljxkdyieevntfnt
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-            required: true
-          ssl:
-            enable: true
+  config:
+    import: optional:configserver:${config.server.url}
 server:
   port: 80
-
-# start [ data sources config mysql]
-dataSources:
-  # [ planbow db mongodb]
-  mongodb:
-    authenticatedDatabase: admin
-    database: ${MONGODB.SCHEME}
-    host: ${MONGODB.HOST}
-    port: ${MONGODB.PORT}
-    userName: ${MONGODB.USERNAME}
-    password: ${MONGODB.PASSWORD}
-    uri:
-    fieldNamingStrategy:
-    gridFsDatabase:
-    # end [ data sources config ]
-# start [ security config ]
-security:
-  config:
-    jwt:
-      secret: ${PLANBOW.API.SECURITY.JWT.SECRET}
-      expiration:
-        accessToken: ${PLANBOW.API.SECURITY.JWT.EXPIRATION.AT}
-        refreshToken: ${PLANBOW.API.SECURITY.JWT.EXPIRATION.RT}
-
-# end [ security config ]
-digitalocean:
-  spaces:
-    access:
-      key: FQCUT2UEKU33GZUVVDHO
-      secret: 7qJ0FPQbzymrfnJ1adUKTjzLOGl03sCxPXNmlfMRY1Q
-    endpoint: https://ams3.digitaloceanspaces.com
-    region: ams3
-    bucket:
-      name: one-islam
-      folder: default
-
-eureka:
-  client:
-    enabled: false

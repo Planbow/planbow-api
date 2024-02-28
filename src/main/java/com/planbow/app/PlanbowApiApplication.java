@@ -11,8 +11,6 @@ import org.springframework.boot.web.servlet.MultipartConfigFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.client.RestTemplate;
 import java.util.Random;
@@ -26,10 +24,7 @@ import java.util.Random;
         "com.planbow.services",
         "com.planbow.repository",
         "com.planbow.utility",
-        "com.planbow.datasource",
-        "com.planbow.security.jwt",
-        "com.planbow.security.config",
-        "com.planbow.security.services",
+        "com.planbow.datasource"
 })
 @EnableScheduling
 public class PlanbowApiApplication {
@@ -39,11 +34,6 @@ public class PlanbowApiApplication {
         SpringApplication.run(PlanbowApiApplication.class, args);
     }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        log.info("Initializing BCryptPasswordEncoder bean");
-        return new BCryptPasswordEncoder();
-    }
 
     @Bean
     public RestTemplate restTemplate() {
