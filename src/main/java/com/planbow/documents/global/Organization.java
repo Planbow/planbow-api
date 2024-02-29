@@ -14,7 +14,7 @@ public class Organization implements BaseDocument {
     private String id;
     private String name;
     private String description;
-    private String createdBy;
+    private String userId; // createdBy
     private Instant createdOn;
     private Instant modifiedOn;
     private boolean active;

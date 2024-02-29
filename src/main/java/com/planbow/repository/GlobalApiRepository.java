@@ -6,9 +6,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
-
 import java.util.List;
-
 
 @Repository
 @Log4j2
@@ -23,7 +21,7 @@ public class GlobalApiRepository extends MongoDbRepository {
 
     public List<Organization> getOrganizations(String userId){
         Query query= new Query();
-        Criteria criteria=  Criteria.where("createdBy").is(userId);
+        Criteria criteria=  Criteria.where("userId").is(userId);
         query.addCriteria(criteria);
         return (List<Organization>) getDocuments(Organization.class,query);
     }

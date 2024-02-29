@@ -26,17 +26,17 @@ public class GlobalApiController {
     }
 
     @PostMapping("/get-organizations")
-    public ResponseEntity<ResponseJsonHandler> getOrganization(@RequestBody RequestJsonHandler  requestJsonHandler, @RequestHeader(name="Authorization") String  authorization){
-        String userId = PlanbowUtility.getUserId(authorization);
+    public ResponseEntity<ResponseJsonHandler> getOrganization(@RequestBody RequestJsonHandler  requestJsonHandler){
+        String userId = requestJsonHandler.getStringValue("userId");
         return globalApiService.getOrganizations(userId);
     }
 
     @PostMapping("/create-organization")
-    public ResponseEntity<ResponseJsonHandler> createOrganization(@RequestBody RequestJsonHandler requestJsonHandler,@RequestHeader(name="Authorization") String authorization){
+    public ResponseEntity<ResponseJsonHandler> createOrganization(@RequestBody RequestJsonHandler requestJsonHandler){
         String organizationName  = requestJsonHandler.getStringValue("organizationName");
         if(TextUtils.isEmpty(organizationName))
             return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide organizationName");
-        String userId = PlanbowUtility.getUserId(authorization);
+        String userId =requestJsonHandler.getStringValue("userId");
         return globalApiService.createOrganization(organizationName.trim(),userId);
     }
 
