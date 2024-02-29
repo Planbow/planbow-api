@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.planbow.documents.global.Organization;
 import com.planbow.repository.GlobalApiRepository;
-import com.planbow.util.json.handler.request.RequestJsonHandler;
 import com.planbow.util.json.handler.response.ResponseJsonHandler;
 import com.planbow.util.json.handler.response.util.ResponseJsonUtil;
 import lombok.extern.log4j.Log4j2;
@@ -63,7 +62,7 @@ public class GlobalApiService {
 
         Organization organization  = new Organization();
         organization.setName(organizationName);
-        organization.setCreatedBy(userId);
+        organization.setUserId(userId);
         organization.setCreatedOn(Instant.now());
         organization.setModifiedOn(Instant.now());
         organization.setActive(true);
