@@ -47,7 +47,6 @@ public class WorkspaceApiController {
         String organizationId  = requestJsonHandler.getStringValue("organizationId");
         if(TextUtils.isEmpty(organizationId))
             return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide organizationId");
-
         Integer index  = requestJsonHandler.getIntegerValue("index");
         if(index==null)
             return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST, "Please provide index");
@@ -56,9 +55,18 @@ public class WorkspaceApiController {
         if(itemsPerIndex==null)
             return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST, "Please provide itemsPerIndex");
 
-        String search  = requestJsonHandler.getStringValue("sort");
+        String search  = requestJsonHandler.getStringValue("search");
         String sort  = requestJsonHandler.getStringValue("sort");
         return workspaceApiService.getWorkspaces(organizationId.trim(),index,itemsPerIndex,search,sort,userId);
+    }
+
+    @PostMapping("update-workspace")
+    public ResponseEntity<ResponseJsonHandler> updateWorkspace(@RequestBody RequestJsonHandler requestJsonHandler){
+        String userId =requestJsonHandler.getStringValue("userId");
+        String workspaceId  = requestJsonHandler.getStringValue("workspaceId");
+        if(TextUtils.isEmpty(workspaceId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide workspaceId");
+        return workspaceApiService.updateWorkspace(workspaceId.trim(),userId,requestJsonHandler);
     }
 
 }

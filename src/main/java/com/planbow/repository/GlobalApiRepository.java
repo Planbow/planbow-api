@@ -29,4 +29,8 @@ public class GlobalApiRepository extends MongoDbRepository {
     public Organization saveOrUpdateOrganization(Organization organization){
         return (Organization) saveOrUpdateDocument(organization);
     }
+
+    public Organization getOrganizationById(String id){
+        return (Organization) getDocument(Organization.class,id);
+    }
 }

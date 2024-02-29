@@ -21,12 +21,13 @@ import java.util.List;
 @Transactional
 public class WorkspaceApiRepository extends MongoDbRepository {
 
-    public boolean isWorkspaceExists(String name,String userId){
+    public boolean isWorkspaceExists(String name,String userId,String organizationId){
         Query query= new Query();
         Criteria criteria=  Criteria.where("name").regex("^"+name+"$","i");
         criteria = criteria.and("userId").is(userId);
+        criteria = criteria.and("organizationId").is(organizationId);
         query.addCriteria(criteria);
-        return mongoTemplate.exists(query, Organization.class);
+        return mongoTemplate.exists(query, Workspace.class);
     }
 
     public Workspace saveOrUpdateWorkspace(Workspace workspace){
@@ -44,15 +45,21 @@ public class WorkspaceApiRepository extends MongoDbRepository {
                     Criteria.where("name").regex(search,"i"));
         }
         query.addCriteria(criteria);
-        query.with(Sort.by(Sort.Direction.DESC, "createdOn"));
-        if(StringUtils.isEmpty(sort)){
+
+        if(!StringUtils.isEmpty(sort)){
             if(sort.equals("Created With"))
                 query.with(Sort.by(Sort.Direction.DESC, "createdOn"));
             if(sort.equals("Alphabetical"))
                 query.with(Sort.by(Sort.Direction.ASC, "name"));
+        }else{
+            query.with(Sort.by(Sort.Direction.DESC, "createdOn"));
         }
 
         query.with(pageable);
         return (List<Workspace>) getDocuments(Workspace.class,query);
+    }
+
+    public Workspace getWorkSpaceById(String id){
+        return (Workspace) getDocument(Workspace.class,id);
     }
 }
