@@ -53,6 +53,10 @@ public class GlobalApiService {
 
 
     public ResponseEntity<ResponseJsonHandler> createOrganization(String organizationName,String userId) {
+        List<Organization> organizations = globalApiRepository.getOrganizations(userId);
+        if(!organizations.isEmpty())
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"You cann't create more than one organization");
+
         if(globalApiRepository.isOrganizationExists(organizationName)){
             return ResponseJsonUtil.getResponse(HttpStatus.CONFLICT,"Provided organization name already exists");
         }
