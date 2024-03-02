@@ -2,6 +2,8 @@ package com.planbow.services;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.planbow.documents.open.ai.NodeData;
 import com.planbow.documents.open.ai.PromptValidation;
 import com.planbow.util.json.handler.response.ResponseJsonHandler;
 import com.planbow.util.json.handler.response.util.ResponseJsonUtil;
@@ -18,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -98,5 +101,42 @@ public class OpenAiService {
         }
         System.out.println(promptValidation);
         return ResponseJsonUtil.getResponse(HttpStatus.OK,promptValidation);
+    }
+    public ResponseEntity<ResponseJsonHandler> generateNodes(String domain,String subdomain,String scope,String geography){
+        BeanOutputParser<NodeData> outputParser = new BeanOutputParser<>(NodeData.class);
+        if(scope==null)
+            scope=" ";
+
+        if(geography==null)
+            geography=" ";
+        String query =
+                """
+                Provide Business strategy steps for {domain} business focusing on {subdomain} focusing in {geography} market. Key departments to focus on {scope}.
+                {format}
+                """;
+        Map<String,Object> map  = new HashMap<>();
+        map.put("domain",domain);
+        map.put("subdomain",subdomain);
+        map.put("geography",geography);
+        map.put("scope",scope);
+        map.put("format",outputParser.getFormat());
+        PromptTemplate promptTemplate = new PromptTemplate(query,map);
+        Prompt prompt = promptTemplate.create();
+        Generation generation = chatClient.call(prompt).getResult();
+        NodeData nodeData;
+        ObjectNode node  = objectMapper.createObjectNode();
+        try{
+            nodeData = outputParser.parse(generation.getOutput().getContent());
+            node.put("status","positive");
+            node.set("reason",objectMapper.valueToTree(null));
+            node.set("results",objectMapper.valueToTree(nodeData.getResults()));
+        }catch (Exception e){
+            log.error("Exception occurred in generateNodes() method : {}",e.getMessage());
+            node.put("status","negative");
+            node.put("reason","Unable to process prompt "+e.getMessage());
+            node.set("results",objectMapper.createArrayNode());
+        }
+
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,node);
     }
 }

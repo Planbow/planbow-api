@@ -48,4 +48,18 @@ public class OpenAiController {
         return openAiService.validatePrompt(domain.trim(),subdomain.trim(),scope,geography);
     }
 
+    @PostMapping("/generate-nodes")
+    public ResponseEntity<ResponseJsonHandler> generateNodes(@RequestBody RequestJsonHandler requestJsonHandler){
+        String domain = requestJsonHandler.getStringValue("domain");
+        if(StringUtils.isEmpty(domain))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide domain");
+
+        String subdomain = requestJsonHandler.getStringValue("subdomain");
+        if(StringUtils.isEmpty(subdomain))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide subdomain");
+
+        String scope = requestJsonHandler.getStringValue("scope");
+        String geography = requestJsonHandler.getStringValue("geography");
+        return openAiService.generateNodes(domain.trim(),subdomain.trim(),scope,geography);
+    }
 }
