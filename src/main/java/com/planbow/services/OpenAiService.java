@@ -96,8 +96,6 @@ public class OpenAiService {
             promptValidation.setStatus("negative");
             promptValidation.setReason("Unable to process prompt "+e.getMessage());
         }
-
-
         System.out.println(promptValidation);
         return ResponseJsonUtil.getResponse(HttpStatus.OK,promptValidation);
     }
