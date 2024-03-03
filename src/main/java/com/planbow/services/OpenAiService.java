@@ -129,7 +129,7 @@ public class OpenAiService {
             nodeData = outputParser.parse(generation.getOutput().getContent());
             node.put("status","positive");
             node.set("reason",objectMapper.valueToTree(null));
-            node.set("results",objectMapper.valueToTree(nodeData.getResults()));
+            node.set("results",objectMapper.valueToTree(nodeData.getNodeResponses()));
         }catch (Exception e){
             log.error("Exception occurred in generateNodes() method : {}",e.getMessage());
             node.put("status","negative");

@@ -8,6 +8,6 @@ import java.util.List;
 
 @Data
 public class NodeData {
-    List<NodeResponse> results;
+    List<NodeResponse> nodeResponses;
 }
 
