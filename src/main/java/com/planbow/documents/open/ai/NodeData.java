@@ -3,7 +3,6 @@ package com.planbow.documents.open.ai;
 
 
 import lombok.Data;
-
 import java.util.List;
 
 @Data
