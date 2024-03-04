@@ -4,7 +4,10 @@ package com.planbow.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.planbow.documents.core.Domain;
+import com.planbow.documents.core.SubDomain;
 import com.planbow.documents.global.Organization;
+import com.planbow.repository.AdminApiRepository;
 import com.planbow.repository.GlobalApiRepository;
 import com.planbow.util.json.handler.response.ResponseJsonHandler;
 import com.planbow.util.json.handler.response.util.ResponseJsonUtil;
@@ -23,6 +26,14 @@ public class GlobalApiService {
 
     private GlobalApiRepository globalApiRepository;
     private ObjectMapper objectMapper;
+    private AdminApiRepository adminApiRepository;
+
+
+    @Autowired
+    public void setAdminApiRepository(AdminApiRepository adminApiRepository) {
+        this.adminApiRepository = adminApiRepository;
+    }
+
 
     @Autowired
     public void setObjectMapper(ObjectMapper objectMapper) {
@@ -73,5 +84,40 @@ public class GlobalApiService {
         data.put("organizationName",organization.getName());
         return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
 
+    }
+
+    public ResponseEntity<ResponseJsonHandler> searchDomains(String search) {
+        List<Domain> domains  = globalApiRepository.getDomains(search);
+        if(domains.isEmpty()) return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"No business domains found for given search");
+        ArrayNode data  = objectMapper.createArrayNode();
+        domains.forEach(e->{
+            ObjectNode node  = objectMapper.createObjectNode();
+            node.put("domainId",e.getId());
+            node.put("name",e.getName());
+            data.add(node);
+        });
+
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
+    }
+
+
+    public ResponseEntity<ResponseJsonHandler> searchSubDomains(String domainId,String search) {
+        Domain domain = adminApiRepository.getDomainById(domainId);
+        if(domain==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided domainId does not exists");
+
+        List<SubDomain> domains  = globalApiRepository.getSubDomains(domainId,search);
+        if(domains.isEmpty())
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"No sub domains found for given search");
+
+        ArrayNode data  = objectMapper.createArrayNode();
+        domains.forEach(e->{
+            ObjectNode node  = objectMapper.createObjectNode();
+            node.put("domainId",e.getId());
+            node.put("name",e.getName());
+            data.add(node);
+        });
+
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
     }
 }

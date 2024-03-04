@@ -7,6 +7,7 @@ import com.planbow.util.json.handler.request.RequestJsonHandler;
 import com.planbow.util.json.handler.response.ResponseJsonHandler;
 import com.planbow.util.json.handler.response.util.ResponseJsonUtil;
 import com.planbow.utility.PlanbowUtility;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.TextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -38,6 +39,21 @@ public class GlobalApiController {
             return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide organizationName");
         String userId =requestJsonHandler.getStringValue("userId");
         return globalApiService.createOrganization(organizationName.trim(),userId);
+    }
+
+    @PostMapping("/search-domains")
+    public ResponseEntity<ResponseJsonHandler> searchDomains(@RequestBody RequestJsonHandler requestJsonHandler){
+        String search  = requestJsonHandler.getStringValue("search");
+        return globalApiService.searchDomains(search);
+    }
+
+    @PostMapping("/search-subdomains")
+    public ResponseEntity<ResponseJsonHandler> searchSubDomains(@RequestBody RequestJsonHandler requestJsonHandler){
+        String domainId  = requestJsonHandler.getStringValue("domainId");
+        if(StringUtils.isEmpty(domainId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide domainId");
+        String search  = requestJsonHandler.getStringValue("search");
+        return globalApiService.searchSubDomains(domainId.trim(),search);
     }
 
 }
