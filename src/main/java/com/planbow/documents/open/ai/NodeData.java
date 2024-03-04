@@ -2,11 +2,13 @@ package com.planbow.documents.open.ai;
 
 
 
-import lombok.Data;
+import lombok.*;
+
+import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class NodeData {
-    List<NodeResponse> nodeResponses;
+public class NodeData implements Serializable {
+   private List<NodeResponse> nodeResponses;
 }
 

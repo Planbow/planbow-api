@@ -111,9 +111,10 @@ public class OpenAiService {
             geography=" ";
         String query =
                 """
-                Provide Business strategy steps for {domain} business focusing on {subdomain} focusing in {geography} market. Key departments to focus on {scope}.
+                Provide Business strategy steps for {domain} business focusing on {subdomain} focusing in {geography} market. Key departments to focus on {scope}.format pointers in a flat sequential structure.
                 {format}
                 """;
+
         Map<String,Object> map  = new HashMap<>();
         map.put("domain",domain);
         map.put("subdomain",subdomain);
@@ -123,6 +124,7 @@ public class OpenAiService {
         PromptTemplate promptTemplate = new PromptTemplate(query,map);
         Prompt prompt = promptTemplate.create();
         Generation generation = chatClient.call(prompt).getResult();
+        System.out.println(generation.getOutput().getContent());
         NodeData nodeData;
         ObjectNode node  = objectMapper.createObjectNode();
         try{
