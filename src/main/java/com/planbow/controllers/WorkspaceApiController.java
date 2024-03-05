@@ -60,6 +60,21 @@ public class WorkspaceApiController {
         return workspaceApiService.getWorkspaces(organizationId.trim(),index,itemsPerIndex,search,sort,userId);
     }
 
+
+    @PostMapping("get-workspace")
+    public ResponseEntity<ResponseJsonHandler> getWorkspace(@RequestBody RequestJsonHandler requestJsonHandler){
+        String userId =requestJsonHandler.getStringValue("userId");
+        String organizationId  = requestJsonHandler.getStringValue("organizationId");
+        if(TextUtils.isEmpty(organizationId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide organizationId");
+
+        String workspaceId  = requestJsonHandler.getStringValue("workspaceId");
+        if(TextUtils.isEmpty(workspaceId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide workspaceId");
+        return workspaceApiService.getWorkspace(workspaceId.trim(),organizationId.trim(),userId);
+    }
+
+
     @PostMapping("update-workspace")
     public ResponseEntity<ResponseJsonHandler> updateWorkspace(@RequestBody RequestJsonHandler requestJsonHandler){
         String userId =requestJsonHandler.getStringValue("userId");

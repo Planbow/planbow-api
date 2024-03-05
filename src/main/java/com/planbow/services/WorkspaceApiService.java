@@ -146,4 +146,33 @@ public class WorkspaceApiService {
         workspaceApiRepository.saveOrUpdateWorkspace(workspace);
         return ResponseJsonUtil.getResponse(HttpStatus.OK,"Workspace successfully updated");
     }
+
+    public ResponseEntity<ResponseJsonHandler> getWorkspace(String workspaceId, String organizationId, String userId) {
+
+        Workspace workspace  = workspaceApiRepository.getWorkSpaceById(workspaceId);
+        if(workspace==null){
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided workspaceId doesn't exists");
+        }
+        if(!workspace.getUserId().equals(userId)){
+            return ResponseJsonUtil.getResponse(HttpStatus.UNAUTHORIZED,"Provided workspaceId doesn't belong to logged in user");
+        }
+        if(!workspace.getOrganizationId().equals(organizationId)){
+            return ResponseJsonUtil.getResponse(HttpStatus.UNAUTHORIZED,"Provided workspaceId doesn't belong to given organization");
+        }
+
+
+        ArrayNode boards  = objectMapper.createArrayNode();
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("id",workspace.getId());
+        node.put("name",workspace.getName());
+        node.put("description",workspace.getDescription());
+        node.put("active",workspace.isActive());
+        node.put("pinned",workspace.isPinned());
+        node.set("createdOn",objectMapper.valueToTree(workspace.getCreatedOn()));
+
+        node.put("planBoardCount",0);
+        node.set("planBoards",boards);
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,node);
+
+    }
 }
