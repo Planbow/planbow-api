@@ -12,8 +12,10 @@ import java.time.Instant;
 public class PlanbowUtility {
 
 
-    public static PromptResults preparePromptResult(PlanboardApiRepository planboardApiRepository,String domainId, String subdomainId, String scope , String geography, String userId, PromptValidation promptValidation){
-        PromptResults promptResults  = new PromptResults();
+    public static PromptResults preparePromptResult(PlanboardApiRepository planboardApiRepository,String domainId, String subdomainId, String scope , String geography, String userId,PromptResults promptResults, PromptValidation promptValidation){
+        if(promptResults==null)
+           promptResults  = new PromptResults();
+
         promptResults.setDomainId(domainId);
         promptResults.setSubdomainId(subdomainId);
         promptResults.setScope(scope);

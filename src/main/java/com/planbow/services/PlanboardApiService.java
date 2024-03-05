@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -78,7 +79,7 @@ public class PlanboardApiService {
             if(promptResults.getPromptValidation()!=null){
                 if(promptResults.getPromptValidation().getStatus().equalsIgnoreCase("negative")){
                     PromptValidation promptValidation=openAiPromptValidation(domain.getName(), subDomain.getName(),scope,geography);
-                    promptResults = preparePromptResult(planboardApiRepository,domain.getId(),subDomain.getId(),scope,geography,userId,promptValidation);
+                    promptResults = preparePromptResult(planboardApiRepository,domain.getId(),subDomain.getId(),scope,geography,userId,promptResults,promptValidation);
                     TemporaryPlanboard temporaryPlanboard = prepareTemporaryPlanboard(planboardApiRepository,promptResults.getId(),userId);
                     node.put("status",promptValidation.getStatus());
                     node.put("reason",promptValidation.getReason());
@@ -89,14 +90,24 @@ public class PlanboardApiService {
                     }
                 }
                 else {
-                    if(promptResults.getStrategicNodes()==null){
+                    if(CollectionUtils.isEmpty(promptResults.getStrategicNodes())){
+                        TemporaryPlanboard temporaryPlanboard = prepareTemporaryPlanboard(planboardApiRepository,promptResults.getId(),userId);
+                        node.put("status",promptResults.getPromptValidation().getStatus());
+                        node.put("reason",promptResults.getPromptValidation().getReason());
+                        node.put("planboardId",temporaryPlanboard.getId());
                         PromptResults finalPromptResults = promptResults;
                         new Thread(()->openAiStrategicNodes(domain,subDomain,scope,geography,userId, finalPromptResults) ).start();
+                    }else{
+                        TemporaryPlanboard temporaryPlanboard = prepareTemporaryPlanboard(planboardApiRepository,promptResults.getId(),userId);
+                        node.put("status",promptResults.getPromptValidation().getStatus());
+                        node.put("reason",promptResults.getPromptValidation().getReason());
+                        node.put("planboardId",temporaryPlanboard.getId());
                     }
                 }
-            }else{
+            }
+            else{
                 PromptValidation promptValidation=openAiPromptValidation(domain.getName(), subDomain.getName(),scope,geography);
-                promptResults = preparePromptResult(planboardApiRepository,domain.getId(),subDomain.getId(),scope,geography,userId,promptValidation);
+                promptResults = preparePromptResult(planboardApiRepository,domain.getId(),subDomain.getId(),scope,geography,userId,promptResults,promptValidation);
                 TemporaryPlanboard temporaryPlanboard = prepareTemporaryPlanboard(planboardApiRepository,promptResults.getId(),userId);
                 node.put("status",promptValidation.getStatus());
                 node.put("reason",promptValidation.getReason());
@@ -107,9 +118,10 @@ public class PlanboardApiService {
                     new Thread(()->openAiStrategicNodes(domain,subDomain,scope,geography,userId, finalPromptResults) ).start();
                 }
             }
-        }else{
+        }
+        else{
             PromptValidation promptValidation=openAiPromptValidation(domain.getName(), subDomain.getName(),scope,geography);
-            promptResults = preparePromptResult(planboardApiRepository,domain.getId(),subDomain.getId(),scope,geography,userId,promptValidation);
+            promptResults = preparePromptResult(planboardApiRepository,domain.getId(),subDomain.getId(),scope,geography,userId,null,promptValidation);
             TemporaryPlanboard temporaryPlanboard = prepareTemporaryPlanboard(planboardApiRepository,promptResults.getId(),userId);
             node.put("status",promptValidation.getStatus());
             node.put("reason",promptValidation.getReason());
@@ -123,7 +135,7 @@ public class PlanboardApiService {
     }
 
     private void openAiStrategicNodes(Domain domain,SubDomain subdomain,String scope,String geography,String userId,PromptResults promptResults) {
-        System.out.println("Called openAiStrategicNodes()");
+        log.info("Executing openAiStrategicNodes() method");
         BeanOutputParser<NodeData> outputParser = new BeanOutputParser<>(NodeData.class);
         if(scope==null)
             scope=" ";
@@ -157,7 +169,8 @@ public class PlanboardApiService {
     }
 
 
-    public PromptValidation openAiPromptValidation(String domain, String subdomain, String scope, String geography){
+    private  PromptValidation openAiPromptValidation(String domain, String subdomain, String scope, String geography){
+        log.info("Executing openAiPromptValidation() method");
         BeanOutputParser<PromptValidation> outputParser = new BeanOutputParser<>(PromptValidation.class);
         if(scope==null)
             scope=" ";
