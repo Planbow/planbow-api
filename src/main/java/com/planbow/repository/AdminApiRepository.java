@@ -41,4 +41,8 @@ public class AdminApiRepository extends MongoDbRepository {
         return (Domain) getDocument(Domain.class,id);
     }
 
+
+    public SubDomain getSubdomainById(String id){
+        return (SubDomain) getDocument(SubDomain.class,id);
+    }
 }
