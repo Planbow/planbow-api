@@ -43,4 +43,37 @@ public class PlanboardApiController {
     }
 
 
+    @PostMapping("/create-planboard")
+    public ResponseEntity<ResponseJsonHandler> createPlanboard(@RequestBody RequestJsonHandler requestJsonHandler){
+        String userId = requestJsonHandler.getStringValue("userId");
+        String planboardId  = requestJsonHandler.getStringValue("planboardId");
+        if(StringUtils.isEmpty(planboardId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide planboardId");
+
+        String workspaceId  = requestJsonHandler.getStringValue("workspaceId");
+        if(StringUtils.isEmpty(workspaceId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide workspaceId");
+
+        String name  = requestJsonHandler.getStringValue("name");
+        if(StringUtils.isEmpty(name))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide name");
+
+        String description = requestJsonHandler.getStringValue("description");
+
+        String domainId = requestJsonHandler.getStringValue("domainId");
+        if(StringUtils.isEmpty(domainId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide domainId");
+
+        String subdomainId = requestJsonHandler.getStringValue("subdomainId");
+        if(StringUtils.isEmpty(subdomainId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide subdomainId");
+
+        String scope = requestJsonHandler.getStringValue("scope");
+        String geography = requestJsonHandler.getStringValue("geography");
+
+
+        return planboardApiService.validatePrompt(domainId.trim(),subdomainId.trim(),scope,geography,userId);
+    }
+
+
 }
