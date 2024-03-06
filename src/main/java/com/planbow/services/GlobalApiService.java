@@ -96,7 +96,7 @@ public class GlobalApiService {
         workspace.setModifiedOn(Instant.now());
         workspace.setActive(true);
         workspace.setUserId(userId);
-        workspace.setOrganizationId(organizationName);
+        workspace.setOrganizationId(organization.getId());
         workspace.setName("My Workspace");
         workspace = workspaceApiRepository.saveOrUpdateWorkspace(workspace);
 
