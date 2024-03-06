@@ -7,8 +7,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.planbow.documents.core.Domain;
 import com.planbow.documents.core.SubDomain;
 import com.planbow.documents.global.Organization;
+import com.planbow.documents.workspace.Workspace;
 import com.planbow.repository.AdminApiRepository;
 import com.planbow.repository.GlobalApiRepository;
+import com.planbow.repository.WorkspaceApiRepository;
 import com.planbow.util.json.handler.response.ResponseJsonHandler;
 import com.planbow.util.json.handler.response.util.ResponseJsonUtil;
 import lombok.extern.log4j.Log4j2;
@@ -27,7 +29,13 @@ public class GlobalApiService {
     private GlobalApiRepository globalApiRepository;
     private ObjectMapper objectMapper;
     private AdminApiRepository adminApiRepository;
+    private WorkspaceApiRepository workspaceApiRepository;
 
+
+    @Autowired
+    public void setWorkspaceApiRepository(WorkspaceApiRepository workspaceApiRepository) {
+        this.workspaceApiRepository = workspaceApiRepository;
+    }
 
     @Autowired
     public void setAdminApiRepository(AdminApiRepository adminApiRepository) {
@@ -82,6 +90,16 @@ public class GlobalApiService {
         ObjectNode data  =objectMapper.createObjectNode();
         data.put("organizationId",organization.getId());
         data.put("organizationName",organization.getName());
+
+        Workspace workspace  = new Workspace();
+        workspace.setCreatedOn(Instant.now());
+        workspace.setModifiedOn(Instant.now());
+        workspace.setActive(true);
+        workspace.setUserId(userId);
+        workspace.setOrganizationId(organizationName);
+        workspace.setName("My Workspace");
+        workspace = workspaceApiRepository.saveOrUpdateWorkspace(workspace);
+
         return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
 
     }
