@@ -1,24 +1,35 @@
 package com.planbow.controllers;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.planbow.services.PlanboardApiService;
 import com.planbow.util.json.handler.request.RequestJsonHandler;
 import com.planbow.util.json.handler.response.ResponseJsonHandler;
 import com.planbow.util.json.handler.response.util.ResponseJsonUtil;
+import com.planbow.utility.TokenUtility;
 import io.micrometer.common.util.StringUtils;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
 
 @RequestMapping("/planboard")
 @RestController
+@Log4j2
 public class PlanboardApiController {
 
     private PlanboardApiService planboardApiService;
+    private ObjectMapper objectMapper;
+
+
+    @Autowired
+    public void setObjectMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Autowired
     public void setPlanboardApiService(PlanboardApiService planboardApiService) {
@@ -44,36 +55,44 @@ public class PlanboardApiController {
 
 
     @PostMapping("/create-planboard")
-    public ResponseEntity<ResponseJsonHandler> createPlanboard(@RequestBody RequestJsonHandler requestJsonHandler){
-        String userId = requestJsonHandler.getStringValue("userId");
-        String planboardId  = requestJsonHandler.getStringValue("planboardId");
-        if(StringUtils.isEmpty(planboardId))
-            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide planboardId");
+    public ResponseEntity<ResponseJsonHandler> createPlanboard(
+            @RequestHeader HttpHeaders headers, @RequestPart("data") String data,
+            @RequestParam(value ="files", required=false) MultipartFile multipartFiles){
 
-        String workspaceId  = requestJsonHandler.getStringValue("workspaceId");
-        if(StringUtils.isEmpty(workspaceId))
-            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide workspaceId");
+        String userId = TokenUtility.getUserId(headers);
+        RequestJsonHandler requestJsonHandler=null;
+        try {
+            requestJsonHandler=objectMapper.readValue(data,RequestJsonHandler.class);
+           /* String planboardId  = requestJsonHandler.getStringValue("planboardId");
+            if(StringUtils.isEmpty(planboardId))
+                return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide planboardId");
 
-        String name  = requestJsonHandler.getStringValue("name");
-        if(StringUtils.isEmpty(name))
-            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide name");
+            String workspaceId  = requestJsonHandler.getStringValue("workspaceId");
+            if(StringUtils.isEmpty(workspaceId))
+                return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide workspaceId");
 
-        String description = requestJsonHandler.getStringValue("description");
+            String name  = requestJsonHandler.getStringValue("name");
+            if(StringUtils.isEmpty(name))
+                return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide name");
 
-        String domainId = requestJsonHandler.getStringValue("domainId");
-        if(StringUtils.isEmpty(domainId))
-            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide domainId");
+            String description = requestJsonHandler.getStringValue("description");
+            String domainId = requestJsonHandler.getStringValue("domainId");
+            if(StringUtils.isEmpty(domainId))
+                return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide domainId");
 
-        String subdomainId = requestJsonHandler.getStringValue("subdomainId");
-        if(StringUtils.isEmpty(subdomainId))
-            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide subdomainId");
+            String subdomainId = requestJsonHandler.getStringValue("subdomainId");
+            if(StringUtils.isEmpty(subdomainId))
+                return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide subdomainId");
 
-        String scope = requestJsonHandler.getStringValue("scope");
-        String geography = requestJsonHandler.getStringValue("geography");
+            String scope = requestJsonHandler.getStringValue("scope");
+            String geography = requestJsonHandler.getStringValue("geography");
+*/
 
-
-        return planboardApiService.validatePrompt(domainId.trim(),subdomainId.trim(),scope,geography,userId);
+            return planboardApiService.createPlanboard(multipartFiles);
+            } catch (IOException e) {
+                log.error("Exception occurred in /create-planboard : {}",e.getMessage());
+            }
+        return ResponseJsonUtil.getResponse(HttpStatus.INTERNAL_SERVER_ERROR,"Internal Server Error");
     }
-
 
 }

@@ -6,10 +6,18 @@ import com.planbow.documents.planboard.TemporaryPlanboard;
 import com.planbow.documents.prompts.PromptResults;
 import com.planbow.repository.PlanboardApiRepository;
 import lombok.extern.log4j.Log4j2;
+
+import java.io.File;
 import java.time.Instant;
 
 @Log4j2
 public class PlanbowUtility {
+
+
+    public static final String DIRECTORY_ROOT="planbow";
+
+    public static final String DIRECTORY_BOARD=DIRECTORY_ROOT+ File.separator+"board";
+
 
 
     public static PromptResults preparePromptResult(PlanboardApiRepository planboardApiRepository,String domainId, String subdomainId, String scope , String geography, String userId,PromptResults promptResults, PromptValidation promptValidation){

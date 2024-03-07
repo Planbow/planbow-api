@@ -25,13 +25,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
-import static com.planbow.utility.PlanbowUtility.preparePromptResult;
-import static com.planbow.utility.PlanbowUtility.prepareTemporaryPlanboard;
+import static com.planbow.utility.PlanbowUtility.*;
 
 @Service
 @Log4j2
@@ -41,7 +46,13 @@ public class PlanboardApiService {
     private AdminApiRepository adminApiRepository;
     private OpenAiChatClient chatClient;
     private ObjectMapper objectMapper;
+    private FileStorageServices fileStorageServices;
 
+
+    @Autowired
+    public void setFileStorageServices(FileStorageServices fileStorageServices) {
+        this.fileStorageServices = fileStorageServices;
+    }
 
     @Autowired
     public void setObjectMapper(ObjectMapper objectMapper) {
@@ -203,6 +214,31 @@ public class PlanboardApiService {
             promptValidation.setReason("Unable to process prompt "+e.getMessage());
         }
         return promptValidation;
+    }
+
+
+    public ResponseEntity<ResponseJsonHandler> createPlanboard(MultipartFile multipartFile){
+
+        if(multipartFile!=null){
+
+            try {
+                File file=fileStorageServices.convertFromMultiPartToFile(multipartFile);
+
+                //BufferedImage bufferedImage = ImageIO.read(file);
+                //File dest  = new File(file.getName()+".webp");
+                //ImageIO.write(bufferedImage, "webp", dest);
+
+                String folder=DIRECTORY_BOARD +File.separator+ UUID.randomUUID().toString();
+                String imageUrl=fileStorageServices.uploadFile(folder,file.getName(),multipartFile);
+                System.out.println("imageUrl "+imageUrl);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        return null;
     }
 
 }
