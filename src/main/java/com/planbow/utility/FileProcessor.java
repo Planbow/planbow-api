@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.time.Instant;
 import static com.planbow.utility.PlanbowUtility.DIRECTORY_BOARDS;
+import static com.planbow.utility.PlanbowUtility.DIRECTORY_ROOT;
 
 
 public class FileProcessor implements Runnable{
@@ -35,7 +36,7 @@ public class FileProcessor implements Runnable{
             attachment.setType(Attachments.TYPE_ROOT);
             attachment.setActive(true);
             attachment.setUploadedOn(Instant.now());
-            String folder = planboard.getUserId() + File.separator + DIRECTORY_BOARDS + File.separator + planboard.getId();
+            String folder =DIRECTORY_ROOT+File.separator+ planboard.getUserId()+File.separator + DIRECTORY_BOARDS + File.separator + planboard.getId();
             attachment.setMetaData(prepareAttachmentMetaData(folder));
             String mediaUrl = fileStorageServices.uploadFile(folder, null, multipartFile);
             attachment.setMediaUrl(mediaUrl);

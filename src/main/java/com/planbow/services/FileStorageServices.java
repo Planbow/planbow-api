@@ -65,7 +65,7 @@ public class FileStorageServices {
 
     public String uploadFile(String folder,String fileName, MultipartFile multipartFile){
         if(fileName==null || StringUtils.isEmpty(fileName))
-            fileName  =multipartFile.getOriginalFilename();
+            fileName  =FilenameUtils.removeExtension(multipartFile.getOriginalFilename());
         else{
             fileName=FilenameUtils.removeExtension(fileName);
             String extension = FilenameUtils.getExtension(multipartFile.getOriginalFilename());

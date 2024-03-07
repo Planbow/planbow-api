@@ -257,7 +257,13 @@ public class PlanboardApiService {
     @Async
     public void initializeAttachments(Planboard planboard ,final MultipartFile[] files){
         for (MultipartFile multipartFile : files) {
-            new Thread(new FileProcessor(planboard,multipartFile,fileStorageServices,planboardApiRepository)).start();
+            try {
+                new Thread(new FileProcessor(planboard,multipartFile,fileStorageServices,planboardApiRepository)).start();
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
         }
     }
 
@@ -278,8 +284,9 @@ public class PlanboardApiService {
                         planboardNodes.setUserId(planboard.getUserId());
                         planboardNodes.setCreatedOn(Instant.now());
                         planboardNodes.setModifiedOn(Instant.now());
+                        planboardNodes.setActive(true);
                         planboardNodes = planboardApiRepository.saveOrUpdatePlanboardNodes(planboardNodes);
-                        parentId=planboardNodes.getParentId();
+                        parentId=planboardNodes.getId();
                     }
                 }
             }

@@ -18,7 +18,7 @@ public class PlanbowUtility {
 
 
     public static final String DIRECTORY_ROOT="planbow";
-    public static final String DIRECTORY_BOARDS=DIRECTORY_ROOT+ File.separator+"boards";
+    public static final String DIRECTORY_BOARDS="boards";
 
     public static PromptResults preparePromptResult(PlanboardApiRepository planboardApiRepository,String domainId, String subdomainId, String scope , String geography, String userId,PromptResults promptResults, PromptValidation promptValidation){
         if(promptResults==null)
