@@ -15,4 +15,5 @@ public class Members implements Serializable {
     public static final String STATUS_PENDING="pending";
     public static final String STATUS_ACCEPTED="accepted";
     public static final String STATUS_REJECTED="rejected";
+
 }

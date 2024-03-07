@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.planbow.documents.core.Domain;
 import com.planbow.documents.core.SubDomain;
 import com.planbow.documents.open.ai.NodeData;
+import com.planbow.documents.open.ai.NodeResponse;
 import com.planbow.documents.open.ai.PromptValidation;
 import com.planbow.documents.planboard.*;
 import com.planbow.documents.prompts.PromptResults;
@@ -13,9 +14,8 @@ import com.planbow.repository.AdminApiRepository;
 import com.planbow.repository.PlanboardApiRepository;
 import com.planbow.util.json.handler.response.ResponseJsonHandler;
 import com.planbow.util.json.handler.response.util.ResponseJsonUtil;
-import com.planbow.utility.PlanbowUtility;
+import com.planbow.utility.FileProcessor;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.io.FilenameUtils;
 import org.springframework.ai.chat.Generation;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
@@ -24,14 +24,10 @@ import org.springframework.ai.parser.BeanOutputParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
-
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
 
@@ -245,44 +241,49 @@ public class PlanboardApiService {
         planboard  = planboardApiRepository.saveOrUpdatePlanboard(planboard);
         Planboard finalPlanboard = planboard;
 
-        // Initialize Attachment
+        // Initialize Attachment For Planboard
         if(multipartFiles!=null){
-            new Thread(()-> initializeAttachments(finalPlanboard,multipartFiles)).start();
+            initializeAttachments(finalPlanboard,multipartFiles);
         }
 
+        // Initialize Strategic Nodes For Planboard
+        initializeStrategicNodes(planboard);
 
         ObjectNode data  = objectMapper.createObjectNode();
         data.put("planboardId",planboard.getId());
         return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
     }
 
-
-    public void initializeAttachments(Planboard planboard ,MultipartFile[] files){
-        List<Attachments> attachmentsList  = new ArrayList<>();
+    @Async
+    public void initializeAttachments(Planboard planboard ,final MultipartFile[] files){
         for (MultipartFile multipartFile : files) {
-            if (multipartFile != null) {
-
-                Attachments attachment = new Attachments();
-                attachment.setPlanboardId(planboard.getId());
-                attachment.setType(Attachments.TYPE_ROOT);
-                attachment.setActive(true);
-                attachment.setUploadedOn(Instant.now());
-                String folder = planboard.getUserId() + File.separator + DIRECTORY_BOARDS + File.separator + planboard.getId();
-
-                MetaData metaData = new MetaData();
-                String extension = FilenameUtils.getExtension(multipartFile.getOriginalFilename());
-                metaData.setExtension(extension);
-                metaData.setPath(folder);
-                metaData.setFileName(multipartFile.getOriginalFilename());
-                metaData.setSize(multipartFile.getSize());
-                attachment.setMetaData(metaData);
-
-                String mediaUrl = fileStorageServices.uploadFile(folder, null, multipartFile);
-                attachment.setMediaUrl(mediaUrl);
-                attachmentsList.add(attachment);
-            }
+            new Thread(new FileProcessor(planboard,multipartFile,fileStorageServices,planboardApiRepository)).start();
         }
-        planboardApiRepository.saveAttachments(attachmentsList);
+    }
+
+    @Async
+    public void initializeStrategicNodes(Planboard planboard){
+        new Thread(()->{
+            TemporaryPlanboard temporaryPlanboard  = planboardApiRepository.getTemporaryPlanboardById(planboard.getId());
+            if(temporaryPlanboard!=null){
+                PromptResults promptResults  = planboardApiRepository.getPromptResultsById(temporaryPlanboard.getPromptId());
+                if(promptResults!=null && !CollectionUtils.isEmpty(promptResults.getStrategicNodes())){
+                    String parentId=null;
+                    for (NodeResponse e : promptResults.getStrategicNodes()) {
+                        PlanboardNodes  planboardNodes  = new PlanboardNodes();
+                        planboardNodes.setPlanboardId(planboard.getId());
+                        planboardNodes.setTitle(e.getTitle());
+                        planboardNodes.setDescription(e.getDescription());
+                        planboardNodes.setParentId(parentId);
+                        planboardNodes.setUserId(planboard.getUserId());
+                        planboardNodes.setCreatedOn(Instant.now());
+                        planboardNodes.setModifiedOn(Instant.now());
+                        planboardNodes = planboardApiRepository.saveOrUpdatePlanboardNodes(planboardNodes);
+                        parentId=planboardNodes.getParentId();
+                    }
+                }
+            }
+        }).start();
     }
 
 }

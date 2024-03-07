@@ -4,11 +4,24 @@ import com.planbow.util.data.support.entities.mongodb.BaseDocument;
 import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.Instant;
+
 
 @Data
 @Document(collection = "planboardNodes")
 public class PlanboardNodes implements BaseDocument {
     private String id;
 
+    private String title;
+    private String description;
+
+    private String planboardId;
+    private String parentId;
+
+    private String color="#2563EB";
+    private String userId;
+    private Instant createdOn;
+    private Instant modifiedOn;
+    private boolean active;
 
 }

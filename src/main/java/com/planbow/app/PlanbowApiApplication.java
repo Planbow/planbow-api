@@ -10,6 +10,7 @@ import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfigurat
 import org.springframework.boot.web.servlet.MultipartConfigFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.client.RestTemplate;
@@ -19,6 +20,7 @@ import java.util.Random;
         HibernateJpaAutoConfiguration.class, DataSourceAutoConfiguration.class
 })
 @Log4j2
+@EnableAsync
 @ComponentScan(value = {
         "com.planbow.controllers",
         "com.planbow.services",
