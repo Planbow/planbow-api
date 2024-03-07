@@ -1,5 +1,6 @@
 package com.planbow.repository;
 
+import com.planbow.documents.planboard.Attachments;
 import com.planbow.documents.planboard.Planboard;
 import com.planbow.documents.planboard.TemporaryPlanboard;
 import com.planbow.documents.prompts.PromptResults;
@@ -43,11 +44,19 @@ public class PlanboardApiRepository extends MongoDbRepository {
         return (Planboard) saveOrUpdateDocument(planboard);
     }
 
+    public Planboard  getPlanboardById(String id){
+        return (Planboard) getDocument(Planboard.class,id);
+    }
+
     public PromptResults saveOrUpdatePromptResults(PromptResults promptResults){
         return (PromptResults) saveOrUpdateDocument(promptResults);
     }
 
     public TemporaryPlanboard saveOrUpdateTemporaryPlanboard(TemporaryPlanboard planboard){
         return (TemporaryPlanboard) saveOrUpdateDocument(planboard);
+    }
+
+    public void saveAttachments(List<Attachments> attachments){
+        saveDocuments(attachments);
     }
 }

@@ -9,16 +9,16 @@ import lombok.extern.log4j.Log4j2;
 
 import java.io.File;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 @Log4j2
 public class PlanbowUtility {
 
 
     public static final String DIRECTORY_ROOT="planbow";
-
-    public static final String DIRECTORY_BOARD=DIRECTORY_ROOT+ File.separator+"board";
-
-
+    public static final String DIRECTORY_BOARDS=DIRECTORY_ROOT+ File.separator+"boards";
 
     public static PromptResults preparePromptResult(PlanboardApiRepository planboardApiRepository,String domainId, String subdomainId, String scope , String geography, String userId,PromptResults promptResults, PromptValidation promptValidation){
         if(promptResults==null)
@@ -47,5 +47,11 @@ public class PlanbowUtility {
         temporaryPlanboard.setActive(true);
         temporaryPlanboard = planboardApiRepository.saveOrUpdateTemporaryPlanboard(temporaryPlanboard);
         return temporaryPlanboard;
+    }
+
+    public static Instant formatStringToInstant(String date){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        LocalDate localDate = LocalDate.parse(date, formatter);
+        return localDate.atStartOfDay(ZoneId.of("UTC")).toInstant();
     }
 }

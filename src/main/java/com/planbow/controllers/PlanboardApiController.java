@@ -2,6 +2,7 @@ package com.planbow.controllers;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.planbow.documents.planboard.Members;
 import com.planbow.services.PlanboardApiService;
 import com.planbow.util.json.handler.request.RequestJsonHandler;
 import com.planbow.util.json.handler.response.ResponseJsonHandler;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
+import java.util.List;
 
 @RequestMapping("/planboard")
 @RestController
@@ -57,13 +59,13 @@ public class PlanboardApiController {
     @PostMapping("/create-planboard")
     public ResponseEntity<ResponseJsonHandler> createPlanboard(
             @RequestHeader HttpHeaders headers, @RequestPart("data") String data,
-            @RequestParam(value ="files", required=false) MultipartFile multipartFiles){
+            @RequestParam(value ="files", required=false) MultipartFile[] multipartFiles){
 
         String userId = TokenUtility.getUserId(headers);
         RequestJsonHandler requestJsonHandler=null;
         try {
             requestJsonHandler=objectMapper.readValue(data,RequestJsonHandler.class);
-           /* String planboardId  = requestJsonHandler.getStringValue("planboardId");
+            String planboardId  = requestJsonHandler.getStringValue("planboardId");
             if(StringUtils.isEmpty(planboardId))
                 return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide planboardId");
 
@@ -86,9 +88,11 @@ public class PlanboardApiController {
 
             String scope = requestJsonHandler.getStringValue("scope");
             String geography = requestJsonHandler.getStringValue("geography");
-*/
-
-            return planboardApiService.createPlanboard(multipartFiles);
+            String endDate = requestJsonHandler.getStringValue("endDate");
+            String remark = requestJsonHandler.getStringValue("remark");
+            boolean markAsDefault = requestJsonHandler.getBooleanValue("markAsDefault");
+            List<Members> members = (List<Members>) requestJsonHandler.getListValues("members", Members.class);
+            return planboardApiService.createPlanboard(userId,planboardId.trim(),workspaceId.trim(),domainId.trim(),subdomainId.trim(),markAsDefault,name,description,scope,geography,endDate,members,remark,multipartFiles);
             } catch (IOException e) {
                 log.error("Exception occurred in /create-planboard : {}",e.getMessage());
             }

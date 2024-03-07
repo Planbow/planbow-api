@@ -7,7 +7,7 @@ import com.planbow.documents.core.Domain;
 import com.planbow.documents.core.SubDomain;
 import com.planbow.documents.open.ai.NodeData;
 import com.planbow.documents.open.ai.PromptValidation;
-import com.planbow.documents.planboard.TemporaryPlanboard;
+import com.planbow.documents.planboard.*;
 import com.planbow.documents.prompts.PromptResults;
 import com.planbow.repository.AdminApiRepository;
 import com.planbow.repository.PlanboardApiRepository;
@@ -15,6 +15,7 @@ import com.planbow.util.json.handler.response.ResponseJsonHandler;
 import com.planbow.util.json.handler.response.util.ResponseJsonUtil;
 import com.planbow.utility.PlanbowUtility;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.ai.chat.Generation;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
@@ -32,9 +33,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static com.planbow.utility.PlanbowUtility.*;
 
@@ -217,28 +216,73 @@ public class PlanboardApiService {
     }
 
 
-    public ResponseEntity<ResponseJsonHandler> createPlanboard(MultipartFile multipartFile){
+    public ResponseEntity<ResponseJsonHandler> createPlanboard(String userId, String planboardId, String workspaceId, String domainId, String subdomainId,boolean markAsDefault,String name, String description, String scope, String geography, String endDate, List<Members> members,String remark, MultipartFile[] multipartFiles){
+        Planboard  planboard  =  planboardApiRepository.getPlanboardById(planboardId);
+        if(planboard!=null)
+            return ResponseJsonUtil.getResponse(HttpStatus.CONFLICT,"Provided planboardId already exists");
 
-        if(multipartFile!=null){
+        planboard=new Planboard();
+        planboard.setId(planboardId);
+        planboard.setMarkAsDefaultDomain(markAsDefault);
+        planboard.setDomainId(domainId);
+        planboard.setSubdomainId(subdomainId);
+        planboard.setScope(scope);
+        planboard.setGeography(geography);
 
-            try {
-                File file=fileStorageServices.convertFromMultiPartToFile(multipartFile);
+        planboard.setEndDate(formatStringToInstant(endDate));
+        members.forEach(e-> e.setStatus(Members.STATUS_PENDING));
+        planboard.setMembers(members);
 
-                //BufferedImage bufferedImage = ImageIO.read(file);
-                //File dest  = new File(file.getName()+".webp");
-                //ImageIO.write(bufferedImage, "webp", dest);
+        planboard.setName(name);
+        planboard.setDescription(description);
+        planboard.setRemark(remark);
+        planboard.setWorkspaceId(workspaceId);
+        planboard.setUserId(userId);
+        planboard.setCreatedOn(Instant.now());
+        planboard.setModifiedOn(Instant.now());
+        planboard.setActive(true);
 
-                String folder=DIRECTORY_BOARD +File.separator+ UUID.randomUUID().toString();
-                String imageUrl=fileStorageServices.uploadFile(folder,file.getName(),multipartFile);
-                System.out.println("imageUrl "+imageUrl);
+        planboard  = planboardApiRepository.saveOrUpdatePlanboard(planboard);
+        Planboard finalPlanboard = planboard;
 
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
+        // Initialize Attachment
+        if(multipartFiles!=null){
+            new Thread(()-> initializeAttachments(finalPlanboard,multipartFiles)).start();
         }
 
-        return null;
+
+        ObjectNode data  = objectMapper.createObjectNode();
+        data.put("planboardId",planboard.getId());
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
+    }
+
+
+    public void initializeAttachments(Planboard planboard ,MultipartFile[] files){
+        List<Attachments> attachmentsList  = new ArrayList<>();
+        for (MultipartFile multipartFile : files) {
+            if (multipartFile != null) {
+
+                Attachments attachment = new Attachments();
+                attachment.setPlanboardId(planboard.getId());
+                attachment.setType(Attachments.TYPE_ROOT);
+                attachment.setActive(true);
+                attachment.setUploadedOn(Instant.now());
+                String folder = planboard.getUserId() + File.separator + DIRECTORY_BOARDS + File.separator + planboard.getId();
+
+                MetaData metaData = new MetaData();
+                String extension = FilenameUtils.getExtension(multipartFile.getOriginalFilename());
+                metaData.setExtension(extension);
+                metaData.setPath(folder);
+                metaData.setFileName(multipartFile.getOriginalFilename());
+                metaData.setSize(multipartFile.getSize());
+                attachment.setMetaData(metaData);
+
+                String mediaUrl = fileStorageServices.uploadFile(folder, null, multipartFile);
+                attachment.setMediaUrl(mediaUrl);
+                attachmentsList.add(attachment);
+            }
+        }
+        planboardApiRepository.saveAttachments(attachmentsList);
     }
 
 }
