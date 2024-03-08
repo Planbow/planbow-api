@@ -99,4 +99,15 @@ public class PlanboardApiController {
         return ResponseJsonUtil.getResponse(HttpStatus.INTERNAL_SERVER_ERROR,"Internal Server Error");
     }
 
+
+    @PostMapping("/planboard-summary")
+    public ResponseEntity<ResponseJsonHandler> planboardSummary(@RequestBody RequestJsonHandler requestJsonHandler){
+        String userId = requestJsonHandler.getStringValue("userId");
+        String planboardId = requestJsonHandler.getStringValue("planboardId");
+        if(StringUtils.isEmpty(planboardId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide planboardId");
+        return planboardApiService.planboardSummary(userId.trim(),planboardId.trim());
+
+    }
+
 }

@@ -10,6 +10,7 @@ import lombok.extern.log4j.Log4j2;
 import java.io.File;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
@@ -53,5 +54,11 @@ public class PlanbowUtility {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         LocalDate localDate = LocalDate.parse(date, formatter);
         return localDate.atStartOfDay(ZoneId.of("UTC")).toInstant();
+    }
+
+    public static String formatInstantToString(Instant instant){
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, java.time.ZoneId.systemDefault());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        return localDateTime.format(formatter);
     }
 }

@@ -2,6 +2,7 @@ package com.planbow.services;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.planbow.documents.core.Domain;
 import com.planbow.documents.core.SubDomain;
@@ -15,6 +16,7 @@ import com.planbow.repository.PlanboardApiRepository;
 import com.planbow.util.json.handler.response.ResponseJsonHandler;
 import com.planbow.util.json.handler.response.util.ResponseJsonUtil;
 import com.planbow.utility.FileProcessor;
+import com.planbow.utility.PlanbowUtility;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.ai.chat.Generation;
 import org.springframework.ai.chat.prompt.Prompt;
@@ -30,6 +32,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.planbow.utility.PlanbowUtility.*;
 
@@ -293,4 +296,42 @@ public class PlanboardApiService {
         }).start();
     }
 
+    public ResponseEntity<ResponseJsonHandler> planboardSummary(String userId, String planboardId) {
+        Planboard planboard  = planboardApiRepository.getPlanboardById(planboardId);
+        if(planboard==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided planboardId does not exists");
+
+        ObjectNode data  = objectMapper.createObjectNode();
+        data.put("planboardId",planboard.getId());
+        data.put("name",planboard.getName());
+        data.put("description",planboard.getDescription());
+        data.put("endDate", PlanbowUtility.formatInstantToString(planboard.getEndDate()));
+        data.put("createdOn", PlanbowUtility.formatInstantToString(planboard.getCreatedOn()));
+
+        ObjectNode businessArea  = objectMapper.createObjectNode();
+        Domain domain = adminApiRepository.getDomainById(planboard.getDomainId());
+        SubDomain subDomain = adminApiRepository.getSubdomainById(planboard.getSubdomainId());
+        businessArea.put("domain",domain.getName());
+        businessArea.put("subdomain",subDomain.getName());
+        businessArea.put("scope",planboard.getScope());
+        businessArea.put("geography",planboard.getGeography());
+        data.set("businessArea",businessArea);
+        Set<String> ids  = planboard.getMembers().stream().map(Members::getUserId).collect(Collectors.toSet());
+
+        ArrayNode members  =objectMapper.createArrayNode();
+        planboard.getMembers().forEach(e->{
+            ObjectNode member  = objectMapper.createObjectNode();
+            member.put("userId",e.getUserId());
+            member.put("email",e.getEmailId());
+            member.put("status",e.getStatus());
+            member.put("role",e.getRole());
+            member.put("name","");
+            member.put("profilePic","");
+            member.put("gender","");
+            members.add(member);
+        });
+
+        data.set("members",members);
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
+    }
 }
