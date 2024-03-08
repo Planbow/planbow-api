@@ -316,7 +316,7 @@ public class PlanboardApiService {
         businessArea.put("scope",planboard.getScope());
         businessArea.put("geography",planboard.getGeography());
         data.set("businessArea",businessArea);
-        Set<String> ids  = planboard.getMembers().stream().map(Members::getUserId).collect(Collectors.toSet());
+       /* Set<String> ids  = planboard.getMembers().stream().map(Members::getUserId).collect(Collectors.toSet());
 
         ArrayNode members  =objectMapper.createArrayNode();
         planboard.getMembers().forEach(e->{
@@ -331,7 +331,24 @@ public class PlanboardApiService {
             members.add(member);
         });
 
-        data.set("members",members);
+        data.set("members",members);*/
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
+    }
+
+    public ResponseEntity<ResponseJsonHandler> getStrategicNodes(String planboardId) {
+        TemporaryPlanboard temporaryPlanboard  = planboardApiRepository.getTemporaryPlanboardById(planboardId);
+        if(temporaryPlanboard==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided planboardId does not exists");
+        PromptResults promptResults  = planboardApiRepository.getPromptResultsById(temporaryPlanboard.getPromptId());
+        ArrayNode data  = objectMapper.createArrayNode();
+        if(promptResults!=null){
+            promptResults.getStrategicNodes().forEach(e->{
+                ObjectNode node  = objectMapper.createObjectNode();
+                node.put("title",e.getTitle());
+                node.put("description",e.getDescription());
+                data.add(node);
+            });
+        }
         return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
     }
 }

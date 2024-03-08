@@ -100,6 +100,16 @@ public class PlanboardApiController {
     }
 
 
+    @PostMapping("/get-strategic-nodes")
+    public ResponseEntity<ResponseJsonHandler> getStrategicNodes(@RequestBody RequestJsonHandler requestJsonHandler){
+        String planboardId  = requestJsonHandler.getStringValue("planboardId");
+        if(StringUtils.isEmpty(planboardId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide planboardId");
+        return planboardApiService.getStrategicNodes(planboardId);
+    }
+
+
+
     @PostMapping("/planboard-summary")
     public ResponseEntity<ResponseJsonHandler> planboardSummary(@RequestBody RequestJsonHandler requestJsonHandler){
         String userId = requestJsonHandler.getStringValue("userId");
