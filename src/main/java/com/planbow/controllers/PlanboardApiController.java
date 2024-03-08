@@ -116,7 +116,7 @@ public class PlanboardApiController {
         String planboardId = requestJsonHandler.getStringValue("planboardId");
         if(StringUtils.isEmpty(planboardId))
             return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide planboardId");
-        return planboardApiService.planboardSummary(userId.trim(),planboardId.trim());
+        return planboardApiService.planboardSummary(userId,planboardId.trim());
 
     }
 
