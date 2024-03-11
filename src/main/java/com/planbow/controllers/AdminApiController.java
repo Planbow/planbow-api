@@ -23,7 +23,6 @@ public class AdminApiController {
 
     private AdminApiService adminApiService;
 
-
     @Autowired
     public void setAdminApiService(AdminApiService adminApiService) {
         this.adminApiService = adminApiService;

@@ -347,8 +347,19 @@ public class PlanboardApiService {
             members.add(member);
         });
         data.set("members",members);
+
+        ArrayNode attachmentNode = objectMapper.createArrayNode();
         List<Attachments> attachments = planboardApiRepository.getAttachments(planboardId,Attachments.TYPE_ROOT);
-        data.set("attachments",objectMapper.valueToTree(attachments));
+        attachments.forEach(e->{
+            ObjectNode attachment  = objectMapper.createObjectNode();
+            attachment.put("name",e.getMetaData().getFileName());
+            attachment.put("extension",e.getMetaData().getExtension());
+            attachment.put("size",formatFileSize(e.getMetaData().getSize()));
+            attachment.put("mediaUrl",e.getMediaUrl());
+            attachment.set("uploadedOn",objectMapper.valueToTree(e.getUploadedOn()));
+            attachmentNode.add(attachment);
+        });
+        data.set("attachments",attachmentNode);
         return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
     }
 
