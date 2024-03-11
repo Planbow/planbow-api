@@ -19,7 +19,6 @@ import java.util.List;
 @Repository
 @Log4j2
 public class GlobalApiRepository extends MongoDbRepository {
-
     public boolean isOrganizationExists(String name){
         Query query= new Query();
         Criteria criteria=  Criteria.where("name").regex("^"+name+"$","i");
