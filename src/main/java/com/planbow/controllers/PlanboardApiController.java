@@ -14,10 +14,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
+
+import static com.planbow.utility.PlanbowUtility.validateMemberAndRoles;
 
 @RequestMapping("/planboard")
 @RestController
@@ -92,6 +96,11 @@ public class PlanboardApiController {
             String remark = requestJsonHandler.getStringValue("remark");
             boolean markAsDefault = requestJsonHandler.getBooleanValue("markAsDefault");
             List<Members> members = (List<Members>) requestJsonHandler.getListValues("members", Members.class);
+            if(!CollectionUtils.isEmpty(members)){
+                if(!validateMemberAndRoles(members)){
+                    return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Invalid member object , emailId or userId is required and role must be Creator , Contributor and Viewer");
+                }
+            }
             return planboardApiService.createPlanboard(userId,planboardId.trim(),workspaceId.trim(),domainId.trim(),subdomainId.trim(),markAsDefault,name,description,scope,geography,endDate,members,remark,multipartFiles);
             } catch (IOException e) {
                 log.error("Exception occurred in /create-planboard : {}",e.getMessage());

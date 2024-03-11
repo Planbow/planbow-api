@@ -2,11 +2,13 @@ package com.planbow.utility;
 
 
 import com.planbow.documents.open.ai.PromptValidation;
+import com.planbow.documents.planboard.Members;
 import com.planbow.documents.planboard.TemporaryPlanboard;
 import com.planbow.documents.prompts.PromptResults;
 import com.planbow.entities.user.UserEntity;
 import com.planbow.repository.PlanboardApiRepository;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.time.Instant;
@@ -16,6 +18,8 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Log4j2
 public class PlanbowUtility {
@@ -67,6 +71,31 @@ public class PlanbowUtility {
 
     public static UserEntity getUserEntity(List<UserEntity> userEntityList,Long id){
         return userEntityList.stream().filter(f-> Objects.equals(f.getId(), id)).findFirst().orElse(null);
+    }
+
+    public static boolean validateMemberAndRoles(List<Members> members){
+        return members.stream()
+                .allMatch(
+                        member ->
+                                isValidRole(member.getRole()) &&
+                               isEmailOrUserIdProvided(member.getUserId(),member.getEmailId())
+                );
+
+    }
+
+    private static boolean isValidRole(String role) {
+        return !StringUtils.isEmpty(role) &&  (role.equals("Creator") || role.equals("Contributor") || role.equals("Viewer"));
+    }
+
+    private static boolean isEmailOrUserIdProvided(String userId,String emailId) {
+        return !StringUtils.isEmpty(userId) || (!StringUtils.isEmpty(emailId) && isValidEmail(emailId));
+    }
+
+    public static boolean isValidEmail(String email) {
+        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+        Pattern pattern = Pattern.compile(emailRegex);
+        Matcher matcher = pattern.matcher(email);
+        return matcher.matches();
     }
 
     public static String formatFileSize(long bytes) {
