@@ -11,8 +11,10 @@ import com.planbow.documents.open.ai.NodeResponse;
 import com.planbow.documents.open.ai.PromptValidation;
 import com.planbow.documents.planboard.*;
 import com.planbow.documents.prompts.PromptResults;
+import com.planbow.entities.user.UserEntity;
 import com.planbow.repository.AdminApiRepository;
 import com.planbow.repository.PlanboardApiRepository;
+import com.planbow.repository.PlanbowHibernateRepository;
 import com.planbow.util.json.handler.response.ResponseJsonHandler;
 import com.planbow.util.json.handler.response.util.ResponseJsonUtil;
 import com.planbow.utility.FileProcessor;
@@ -45,7 +47,13 @@ public class PlanboardApiService {
     private OpenAiChatClient chatClient;
     private ObjectMapper objectMapper;
     private FileStorageServices fileStorageServices;
+    private PlanbowHibernateRepository planbowHibernateRepository;
 
+
+    @Autowired
+    public void setPlanbowHibernateRepository(PlanbowHibernateRepository planbowHibernateRepository) {
+        this.planbowHibernateRepository = planbowHibernateRepository;
+    }
 
     @Autowired
     public void setFileStorageServices(FileStorageServices fileStorageServices) {
@@ -316,8 +324,9 @@ public class PlanboardApiService {
         businessArea.put("scope",planboard.getScope());
         businessArea.put("geography",planboard.getGeography());
         data.set("businessArea",businessArea);
-       /* Set<String> ids  = planboard.getMembers().stream().map(Members::getUserId).collect(Collectors.toSet());
 
+        Set<String> ids  = planboard.getMembers().stream().map(Members::getUserId).collect(Collectors.toSet());
+        List<UserEntity> userEntities = planbowHibernateRepository.getUserEntities(null,new ArrayList<>(ids));
         ArrayNode members  =objectMapper.createArrayNode();
         planboard.getMembers().forEach(e->{
             ObjectNode member  = objectMapper.createObjectNode();
@@ -325,13 +334,21 @@ public class PlanboardApiService {
             member.put("email",e.getEmailId());
             member.put("status",e.getStatus());
             member.put("role",e.getRole());
-            member.put("name","");
-            member.put("profilePic","");
-            member.put("gender","");
+            UserEntity userEntity  = PlanbowUtility.getUserEntity(userEntities,Long.valueOf(e.getUserId()));
+            if(userEntity!=null){
+                member.put("name",userEntity.getName());
+                member.put("profilePic",userEntity.getProfilePic());
+                member.put("gender",userEntity.getGender());
+            }else{
+                member.set("name",objectMapper.valueToTree(null));
+                member.set("profilePic",objectMapper.valueToTree(null));
+                member.set("gender",objectMapper.valueToTree(null));
+            }
             members.add(member);
         });
-
-        data.set("members",members);*/
+        data.set("members",members);
+        List<Attachments> attachments = planboardApiRepository.getAttachments(planboardId,Attachments.TYPE_ROOT);
+        data.set("attachments",objectMapper.valueToTree(attachments));
         return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
     }
 

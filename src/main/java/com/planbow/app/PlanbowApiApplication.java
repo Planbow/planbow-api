@@ -16,9 +16,7 @@ import org.springframework.util.unit.DataSize;
 import org.springframework.web.client.RestTemplate;
 import java.util.Random;
 
-@SpringBootApplication(exclude = {
-        HibernateJpaAutoConfiguration.class, DataSourceAutoConfiguration.class
-})
+@SpringBootApplication
 @Log4j2
 @EnableAsync
 @ComponentScan(value = {
@@ -26,7 +24,9 @@ import java.util.Random;
         "com.planbow.services",
         "com.planbow.repository",
         "com.planbow.utility",
-        "com.planbow.datasource"
+        "com.planbow.datasource.hibernate",
+        "com.planbow.datasource.mongodb",
+        "com.planbow.datasource.storage"
 })
 @EnableScheduling
 public class PlanbowApiApplication {

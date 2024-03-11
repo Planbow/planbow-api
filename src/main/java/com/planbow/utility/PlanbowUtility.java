@@ -4,6 +4,7 @@ package com.planbow.utility;
 import com.planbow.documents.open.ai.PromptValidation;
 import com.planbow.documents.planboard.TemporaryPlanboard;
 import com.planbow.documents.prompts.PromptResults;
+import com.planbow.entities.user.UserEntity;
 import com.planbow.repository.PlanboardApiRepository;
 import lombok.extern.log4j.Log4j2;
 
@@ -13,6 +14,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Objects;
 
 @Log4j2
 public class PlanbowUtility {
@@ -60,5 +63,9 @@ public class PlanbowUtility {
         LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, java.time.ZoneId.systemDefault());
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         return localDateTime.format(formatter);
+    }
+
+    public static UserEntity getUserEntity(List<UserEntity> userEntityList,Long id){
+        return userEntityList.stream().filter(f-> Objects.equals(f.getId(), id)).findFirst().orElse(null);
     }
 }

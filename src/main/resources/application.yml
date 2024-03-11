@@ -1,6 +1,8 @@
 spring:
   application:
     name: planbow-api
+  main:
+    allow-circular-references: true
   config:
     import: optional:configserver:${config.server.url}
   ai:

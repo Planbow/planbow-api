@@ -1,4 +1,4 @@
-package com.planbow.datasource;
+package com.planbow.datasource.mongodb;
 
 import com.planbow.util.data.support.configurations.mongodb.DataSourceConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;

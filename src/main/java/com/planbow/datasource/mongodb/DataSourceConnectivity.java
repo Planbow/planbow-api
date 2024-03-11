@@ -1,4 +1,4 @@
-package com.planbow.datasource;
+package com.planbow.datasource.mongodb;
 
 
 import com.mongodb.ConnectionString;

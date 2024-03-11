@@ -73,7 +73,16 @@ public class PlanboardApiRepository extends MongoDbRepository {
         return (Attachments) saveOrUpdateDocument(attachments);
     }
 
-    public void saveAttachments(List<Attachments> attachments){
-        saveDocuments(attachments);
+
+    public List<Attachments> getAttachments(String planboardId,String type){
+        Query query = new Query();
+        Criteria criteria= Criteria.where("active").is(true);
+        criteria= criteria.and("planboardId").is(planboardId);
+        criteria= criteria.and("type").is(type);
+        query.addCriteria(criteria);
+        return (List<Attachments>) getDocuments(Attachments.class,query);
     }
+
+
+
 }
