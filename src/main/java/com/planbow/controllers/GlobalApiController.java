@@ -56,4 +56,9 @@ public class GlobalApiController {
         return globalApiService.searchSubDomains(domainId.trim(),search);
     }
 
+    @GetMapping("/get-meeting-types")
+    public ResponseEntity<ResponseJsonHandler> getMeetingTypes(){
+        return globalApiService.getMeetingTypes();
+    }
+
 }

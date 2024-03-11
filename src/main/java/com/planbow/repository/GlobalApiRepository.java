@@ -2,6 +2,7 @@ package com.planbow.repository;
 
 import com.planbow.documents.core.Domain;
 import com.planbow.documents.core.SubDomain;
+import com.planbow.documents.global.MeetingType;
 import com.planbow.documents.global.Organization;
 import com.planbow.documents.workspace.Workspace;
 import com.planbow.util.data.support.repository.MongoDbRepository;
@@ -62,5 +63,12 @@ public class GlobalApiRepository extends MongoDbRepository {
         }
         query.addCriteria(criteria);
         return (List<SubDomain>) getDocuments(SubDomain.class,query);
+    }
+
+    public List<MeetingType> getMeetingTypes(){
+        Query query = new Query();
+        Criteria criteria= Criteria.where("active").is(true);
+        query.addCriteria(criteria);
+        return (List<MeetingType>) getDocuments(MeetingType.class,query);
     }
 }

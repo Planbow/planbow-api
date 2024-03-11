@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.planbow.documents.core.Domain;
 import com.planbow.documents.core.SubDomain;
+import com.planbow.documents.global.MeetingType;
 import com.planbow.documents.global.Organization;
 import com.planbow.documents.workspace.Workspace;
 import com.planbow.repository.AdminApiRepository;
@@ -136,6 +137,18 @@ public class GlobalApiService {
             data.add(node);
         });
 
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
+    }
+
+    public ResponseEntity<ResponseJsonHandler> getMeetingTypes() {
+        List<MeetingType> meetingTypes  = globalApiRepository.getMeetingTypes();
+        ArrayNode data  = objectMapper.createArrayNode();
+        meetingTypes.forEach(e->{
+            ObjectNode node  = objectMapper.createObjectNode();
+            node.put("id",e.getId());
+            node.put("name",e.getName());
+            data.add(node);
+        });
         return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
     }
 }
