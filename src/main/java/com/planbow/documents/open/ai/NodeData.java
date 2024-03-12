@@ -7,8 +7,10 @@ import lombok.*;
 import java.io.Serializable;
 import java.util.List;
 
-@Data
-public class NodeData implements Serializable {
+@NoArgsConstructor
+@Getter
+@Setter
+public class NodeData {
    private List<NodeResponse> nodeResponses;
 }
 

@@ -5,8 +5,10 @@ import lombok.*;
 
 import java.io.Serializable;
 
-@Data
-public class NodeResponse implements Serializable {
+@Setter
+@Getter
+@NoArgsConstructor
+public class NodeResponse {
     private String title;
     private String description;
 }
