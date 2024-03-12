@@ -240,12 +240,11 @@ public class PlanboardApiService {
         if(planboardApiRepository.isPlanboardExists(name, userId, workspaceId)){
             return ResponseJsonUtil.getResponse(HttpStatus.CONFLICT,"Provided planboard name already exists");
         }
-        MeetingType meetingType  = globalApiRepository.getMeetingTypesById(schedule.get("meetingTypeId").asText());
-        if(meetingType==null)
-            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided meetingTypeId does not exists");
-
-
-
+        if(schedule!=null){
+            MeetingType meetingType  = globalApiRepository.getMeetingTypesById(schedule.get("meetingTypeId").asText());
+            if(meetingType==null)
+                return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided meetingTypeId does not exists");
+        }
         planboard=new Planboard();
         planboard.setId(planboardId);
         planboard.setMarkAsDefaultDomain(markAsDefault);
