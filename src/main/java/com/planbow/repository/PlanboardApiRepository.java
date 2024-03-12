@@ -1,10 +1,7 @@
 package com.planbow.repository;
 
 import com.planbow.documents.global.Organization;
-import com.planbow.documents.planboard.Attachments;
-import com.planbow.documents.planboard.Planboard;
-import com.planbow.documents.planboard.PlanboardNodes;
-import com.planbow.documents.planboard.TemporaryPlanboard;
+import com.planbow.documents.planboard.*;
 import com.planbow.documents.prompts.PromptResults;
 import com.planbow.documents.workspace.Workspace;
 import com.planbow.util.data.support.repository.MongoDbRepository;
@@ -83,6 +80,9 @@ public class PlanboardApiRepository extends MongoDbRepository {
         return (Attachments) saveOrUpdateDocument(attachments);
     }
 
+    public void saveEvents(List<Events> events){
+        saveDocuments(events);
+    }
 
     public List<Attachments> getAttachments(String planboardId,String type){
         Query query = new Query();

@@ -22,6 +22,7 @@ import com.planbow.util.json.handler.response.util.ResponseJsonUtil;
 import com.planbow.utility.FileProcessor;
 import com.planbow.utility.PlanbowUtility;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.ai.chat.Generation;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
@@ -254,8 +255,11 @@ public class PlanboardApiService {
         planboard.setGeography(geography);
 
         planboard.setEndDate(formatStringToInstant(endDate,null));
-        members.forEach(e-> e.setStatus(Members.STATUS_PENDING));
-        planboard.setMembers(members);
+        if(!CollectionUtils.isEmpty(members)){
+            members.forEach(e-> e.setStatus(Members.STATUS_PENDING));
+            planboard.setMembers(members);
+        }
+
 
         planboard.setName(name);
         planboard.setDescription(description);
@@ -277,13 +281,8 @@ public class PlanboardApiService {
         // Initialize Strategic Nodes For Planboard
         initializeStrategicNodes(planboard);
 
-        Instant date  = formatStringToInstant(schedule.get("date").asText(),null);
-        Instant start  = formatStringTimeToInstant(schedule.get("start").asText(),null);
-        Instant end  = formatStringTimeToInstant(schedule.get("end").asText(),null);
-
-        System.out.println(date+" "+start+" "+end);
-
         // Initialize Event
+        initializeEvents(planboard,schedule);
 
         ObjectNode data  = objectMapper.createObjectNode();
         data.put("planboardId",planboard.getId());
@@ -326,6 +325,38 @@ public class PlanboardApiService {
                     }
                 }
             }
+        }).start();
+    }
+
+    @Async
+    public void initializeEvents(Planboard planboard,ObjectNode schedule){
+        new Thread(()->{
+            if(schedule!=null){
+                Instant start  = convertStringToInstantUTC(schedule.get("date").asText()+" "+schedule.get("start").asText());
+                Instant end  = convertStringToInstantUTC(schedule.get("date").asText()+" "+schedule.get("end").asText());
+                List<Events> events = new ArrayList<>();
+                Set<String> ids=new HashSet<>();
+                ids.add(planboard.getUserId());
+                if(!CollectionUtils.isEmpty(planboard.getMembers())){
+                    ids.addAll(planboard.getMembers().stream().map(Members::getUserId).filter(userId -> !StringUtils.isEmpty(userId)).collect(Collectors.toSet()));
+                }
+                ids.forEach(e->{
+                    Events event  = new Events();
+                    event.setPlanboardId(planboard.getId());
+                    event.setTitle("Planboard - "+planboard.getName());
+                    event.setDescription(null);
+                    event.setUserId(e);
+                    event.setStart(start);
+                    event.setEnd(end);
+                    event.setCreatedBy(planboard.getUserId());
+                    event.setCreatedOn(Instant.now());
+                    event.setModifiedOn(Instant.now());
+                    event.setActive(true);
+                    events.add(event);
+                });
+                planboardApiRepository.saveEvents(events);
+            }
+
         }).start();
     }
 

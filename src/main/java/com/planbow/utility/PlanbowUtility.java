@@ -59,7 +59,10 @@ public class PlanbowUtility {
     public static Instant formatStringToInstant(String date,String pattern){
         if(StringUtils.isEmpty(pattern))
             pattern= "dd-MM-yyyy";
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+        DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+                .parseCaseInsensitive()
+                .appendPattern(pattern)
+                .toFormatter(Locale.ENGLISH);
         LocalDate localDate = LocalDate.parse(date, formatter);
         return localDate.atStartOfDay(ZoneId.of("UTC")).toInstant();
     }
@@ -76,6 +79,9 @@ public class PlanbowUtility {
         ZonedDateTime zonedDateTime = ZonedDateTime.of(LocalDate.now(), localTime, ZoneId.systemDefault());
         return zonedDateTime.toInstant();
     }
+
+
+
 
     public static String formatInstantToString(Instant instant,String pattern){
         if(StringUtils.isEmpty(pattern))
@@ -112,6 +118,16 @@ public class PlanbowUtility {
         Pattern pattern = Pattern.compile(emailRegex);
         Matcher matcher = pattern.matcher(email);
         return matcher.matches();
+    }
+
+    public static Instant convertStringToInstantUTC(String dateTimeString) {
+        DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+                .parseCaseInsensitive()
+                .appendPattern("dd-MM-yyyy hh:mm a")
+                .toFormatter(Locale.ENGLISH);
+        LocalDateTime localDateTime = LocalDateTime.parse(dateTimeString, formatter);
+        ZonedDateTime zonedDateTime = ZonedDateTime.of(localDateTime, ZoneId.systemDefault());
+        return zonedDateTime.withZoneSameInstant(ZoneOffset.UTC).toInstant();
     }
 
     public static String formatFileSize(long bytes) {

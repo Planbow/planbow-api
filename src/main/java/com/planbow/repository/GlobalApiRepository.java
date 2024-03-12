@@ -64,9 +64,13 @@ public class GlobalApiRepository extends MongoDbRepository {
         return (List<SubDomain>) getDocuments(SubDomain.class,query);
     }
 
-    public List<MeetingType> getMeetingTypes(){
+    public List<MeetingType> getMeetingTypes(String search){
         Query query = new Query();
         Criteria criteria= Criteria.where("active").is(true);
+        if(!StringUtils.isEmpty(search)){
+            criteria=criteria.andOperator(
+                    Criteria.where("name").regex(search,"i"));
+        }
         query.addCriteria(criteria);
         return (List<MeetingType>) getDocuments(MeetingType.class,query);
     }
