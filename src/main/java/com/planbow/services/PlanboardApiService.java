@@ -418,25 +418,30 @@ public class PlanboardApiService {
         Set<String> ids  = planboard.getMembers().stream().map(Members::getUserId).collect(Collectors.toSet());
         List<UserEntity> userEntities = planbowHibernateRepository.getUserEntities(null,new ArrayList<>(ids));
         ArrayNode members  =objectMapper.createArrayNode();
-        planboard.getMembers().forEach(e->{
-            ObjectNode member  = objectMapper.createObjectNode();
-            member.put("userId",e.getUserId());
-            member.put("email",e.getEmailId());
-            member.put("status",e.getStatus());
-            member.put("role",e.getRole());
-            UserEntity userEntity  = PlanbowUtility.getUserEntity(userEntities,Long.valueOf(e.getUserId()));
-            if(userEntity!=null){
-                member.put("name",userEntity.getName());
-                member.put("profilePic",userEntity.getProfilePic());
-                member.put("gender",userEntity.getGender());
-            }else{
-                member.set("name",objectMapper.valueToTree(null));
-                member.set("profilePic",objectMapper.valueToTree(null));
-                member.set("gender",objectMapper.valueToTree(null));
-            }
-            members.add(member);
-        });
-        data.set("members",members);
+        if(!CollectionUtils.isEmpty(planboard.getMembers())){
+            planboard.getMembers().forEach(e->{
+                ObjectNode member  = objectMapper.createObjectNode();
+                member.put("userId",e.getUserId());
+                member.put("email",e.getEmailId());
+                member.put("status",e.getStatus());
+                member.put("role",e.getRole());
+                UserEntity userEntity  = PlanbowUtility.getUserEntity(userEntities,Long.valueOf(e.getUserId()));
+                if(userEntity!=null){
+                    member.put("name",userEntity.getName());
+                    member.put("profilePic",userEntity.getProfilePic());
+                    member.put("gender",userEntity.getGender());
+                }else{
+                    member.set("name",objectMapper.valueToTree(null));
+                    member.set("profilePic",objectMapper.valueToTree(null));
+                    member.set("gender",objectMapper.valueToTree(null));
+                }
+                members.add(member);
+            });
+            data.set("members",members);
+        }else{
+            data.set("members",objectMapper.valueToTree(null));
+        }
+
 
         ArrayNode attachmentNode = objectMapper.createArrayNode();
         List<Attachments> attachments = planboardApiRepository.getAttachments(planboardId,Attachments.TYPE_ROOT);
