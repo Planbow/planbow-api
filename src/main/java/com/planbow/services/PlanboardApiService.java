@@ -176,9 +176,10 @@ public class PlanboardApiService {
             geography=" ";
         String query =
                 """
-                Provide Business strategy steps for {domain} business focusing on {subdomain} focusing in {geography} market. Key departments to focus on {scope}.format pointers in a flat sequential structure.
-                {format}
-                """;
+                        Provide Business strategy steps for {domain} business focusing on {subdomain} focusing in {geography} market. Key departments to focus on {scope}.format pointers in a flat sequential structure.
+                        Provide the results in array of object that contains title and description as string
+                        {format}
+                        """;
 
         Map<String,Object> map  = new HashMap<>();
         map.put("domain",domain.getName());
@@ -189,8 +190,11 @@ public class PlanboardApiService {
         PromptTemplate promptTemplate = new PromptTemplate(query,map);
         Prompt prompt = promptTemplate.create();
         Generation generation = chatClient.call(prompt).getResult();
+        String content  = generation.getOutput().getContent();
+        System.out.println(content);
         NodeData nodeData;
         try{
+            ObjectNode node=  objectMapper.readValue(content,ObjectNode.class);
             nodeData = outputParser.parse(generation.getOutput().getContent());
            promptResults.setStrategicNodes(nodeData.getNodeResponses());
             log.info("Executing openAiStrategicNodes() method completed for promptId: {} ",promptResults.getId());
@@ -214,6 +218,7 @@ public class PlanboardApiService {
                 """
                 Validate this prompt from the business point of view and respond with positive or negative if the prompt makes sense. If this comes out to be negative then provide one line reason as well -\s
                 Provide Business strategy steps for {domain} business focusing on {subdomain} focusing in {geography} market. Key departments to focus on {scope}.
+                Provide the results in object that contains status and reason as string
                 {format}
                 """;
 
