@@ -176,7 +176,7 @@ public class PlanboardApiService {
             geography=" ";
         String query =
                 """
-                Provide Only 3 Business strategy steps for {domain} business focusing on {subdomain} focusing in {geography} market. Key departments to focus on {scope}.format pointers in a flat sequential structure.
+                Provide Business strategy steps for {domain} business focusing on {subdomain} focusing in {geography} market. Key departments to focus on {scope}.format pointers in a flat sequential structure.
                 {format}
                 """;
 
@@ -193,6 +193,7 @@ public class PlanboardApiService {
         try{
             nodeData = outputParser.parse(generation.getOutput().getContent());
            promptResults.setStrategicNodes(nodeData.getNodeResponses());
+            log.info("Executing openAiStrategicNodes() method completed for promptId: {} ",promptResults.getId());
         }catch (Exception e){
             log.error("Exception occurred in generateNodes() method : {}",e.getMessage());
         }
@@ -464,7 +465,7 @@ public class PlanboardApiService {
             return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided planboardId does not exists");
         PromptResults promptResults  = planboardApiRepository.getPromptResultsById(temporaryPlanboard.getPromptId());
         ArrayNode data  = objectMapper.createArrayNode();
-        if(promptResults!=null){
+        if(promptResults!=null && !CollectionUtils.isEmpty( promptResults.getStrategicNodes())){
             promptResults.getStrategicNodes().forEach(e->{
                 ObjectNode node  = objectMapper.createObjectNode();
                 node.put("title",e.getTitle());

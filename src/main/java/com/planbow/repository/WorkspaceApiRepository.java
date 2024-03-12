@@ -1,6 +1,7 @@
 package com.planbow.repository;
 
 import com.planbow.documents.global.Organization;
+import com.planbow.documents.planboard.Planboard;
 import com.planbow.documents.workspace.Workspace;
 import com.planbow.util.data.support.repository.MongoDbRepository;
 import io.micrometer.common.util.StringUtils;
@@ -61,5 +62,13 @@ public class WorkspaceApiRepository extends MongoDbRepository {
 
     public Workspace getWorkSpaceById(String id){
         return (Workspace) getDocument(Workspace.class,id);
+    }
+
+    public long getPlanboardCount(String workspaceId,String userId){
+        Query query = new Query();
+        Criteria criteria= Criteria.where("userId").is(userId);
+        criteria= criteria.and("workspaceId").is(workspaceId);
+        query.addCriteria(criteria);
+        return mongoTemplate.count(query, Planboard.class);
     }
 }

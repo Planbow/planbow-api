@@ -99,7 +99,7 @@ public class WorkspaceApiService {
             node.put("pinned",e.isPinned());
             node.set("createdOn",objectMapper.valueToTree(e.getCreatedOn()));
 
-            node.put("planBoardCount",0);
+            node.put("planBoardCount",workspaceApiRepository.getPlanboardCount(e.getId(),e.getUserId()));
             node.set("planBoards",boards);
             data.add(node);
         });
@@ -170,7 +170,7 @@ public class WorkspaceApiService {
         node.put("pinned",workspace.isPinned());
         node.set("createdOn",objectMapper.valueToTree(workspace.getCreatedOn()));
 
-        node.put("planBoardCount",0);
+        node.put("planBoardCount",workspaceApiRepository.getPlanboardCount(workspace.getId(),workspace.getUserId()));
         node.set("planBoards",boards);
         return ResponseJsonUtil.getResponse(HttpStatus.OK,node);
 
