@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.planbow.documents.core.Domain;
 import com.planbow.documents.core.SubDomain;
+import com.planbow.documents.global.MeetingType;
 import com.planbow.documents.open.ai.NodeData;
 import com.planbow.documents.open.ai.NodeResponse;
 import com.planbow.documents.open.ai.PromptValidation;
@@ -13,6 +14,7 @@ import com.planbow.documents.planboard.*;
 import com.planbow.documents.prompts.PromptResults;
 import com.planbow.entities.user.UserEntity;
 import com.planbow.repository.AdminApiRepository;
+import com.planbow.repository.GlobalApiRepository;
 import com.planbow.repository.PlanboardApiRepository;
 import com.planbow.repository.PlanbowHibernateRepository;
 import com.planbow.util.json.handler.response.ResponseJsonHandler;
@@ -48,7 +50,13 @@ public class PlanboardApiService {
     private ObjectMapper objectMapper;
     private FileStorageServices fileStorageServices;
     private PlanbowHibernateRepository planbowHibernateRepository;
+    private GlobalApiRepository globalApiRepository;
 
+
+    @Autowired
+    public void setGlobalApiRepository(GlobalApiRepository globalApiRepository) {
+        this.globalApiRepository = globalApiRepository;
+    }
 
     @Autowired
     public void setPlanbowHibernateRepository(PlanbowHibernateRepository planbowHibernateRepository) {
@@ -223,10 +231,19 @@ public class PlanboardApiService {
     }
 
 
-    public ResponseEntity<ResponseJsonHandler> createPlanboard(String userId, String planboardId, String workspaceId, String domainId, String subdomainId,boolean markAsDefault,String name, String description, String scope, String geography, String endDate, List<Members> members,String remark, MultipartFile[] multipartFiles){
+    public ResponseEntity<ResponseJsonHandler> createPlanboard(String userId, String planboardId, String workspaceId, String domainId, String subdomainId,boolean markAsDefault,String name, String description, String scope, String geography, String endDate, List<Members> members,String remark,ObjectNode schedule, MultipartFile[] multipartFiles){
         Planboard  planboard  =  planboardApiRepository.getPlanboardById(planboardId);
         if(planboard!=null)
             return ResponseJsonUtil.getResponse(HttpStatus.CONFLICT,"Provided planboardId already exists");
+
+        if(planboardApiRepository.isPlanboardExists(name, userId, workspaceId)){
+            return ResponseJsonUtil.getResponse(HttpStatus.CONFLICT,"Provided planboard name already exists");
+        }
+        MeetingType meetingType  = globalApiRepository.getMeetingTypesById(schedule.get("meetingTypeId").asText());
+        if(meetingType==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided meetingTypeId does not exists");
+
+
 
         planboard=new Planboard();
         planboard.setId(planboardId);
@@ -236,7 +253,7 @@ public class PlanboardApiService {
         planboard.setScope(scope);
         planboard.setGeography(geography);
 
-        planboard.setEndDate(formatStringToInstant(endDate));
+        planboard.setEndDate(formatStringToInstant(endDate,null));
         members.forEach(e-> e.setStatus(Members.STATUS_PENDING));
         planboard.setMembers(members);
 
@@ -259,6 +276,14 @@ public class PlanboardApiService {
 
         // Initialize Strategic Nodes For Planboard
         initializeStrategicNodes(planboard);
+
+        Instant date  = formatStringToInstant(schedule.get("date").asText(),null);
+        Instant start  = formatStringTimeToInstant(schedule.get("start").asText(),null);
+        Instant end  = formatStringTimeToInstant(schedule.get("end").asText(),null);
+
+        System.out.println(date+" "+start+" "+end);
+
+        // Initialize Event
 
         ObjectNode data  = objectMapper.createObjectNode();
         data.put("planboardId",planboard.getId());
@@ -313,8 +338,8 @@ public class PlanboardApiService {
         data.put("planboardId",planboard.getId());
         data.put("name",planboard.getName());
         data.put("description",planboard.getDescription());
-        data.put("endDate", PlanbowUtility.formatInstantToString(planboard.getEndDate()));
-        data.put("createdOn", PlanbowUtility.formatInstantToString(planboard.getCreatedOn()));
+        data.put("endDate", PlanbowUtility.formatInstantToString(planboard.getEndDate(),null));
+        data.put("createdOn", PlanbowUtility.formatInstantToString(planboard.getCreatedOn(),null));
 
         ObjectNode businessArea  = objectMapper.createObjectNode();
         Domain domain = adminApiRepository.getDomainById(planboard.getDomainId());

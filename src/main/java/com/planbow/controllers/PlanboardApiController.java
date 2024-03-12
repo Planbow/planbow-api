@@ -2,6 +2,7 @@ package com.planbow.controllers;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.planbow.documents.planboard.Members;
 import com.planbow.services.PlanboardApiService;
 import com.planbow.util.json.handler.request.RequestJsonHandler;
@@ -101,7 +102,19 @@ public class PlanboardApiController {
                     return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Invalid member object , emailId or userId is required and role must be Creator , Contributor and Viewer");
                 }
             }
-            return planboardApiService.createPlanboard(userId,planboardId.trim(),workspaceId.trim(),domainId.trim(),subdomainId.trim(),markAsDefault,name,description,scope,geography,endDate,members,remark,multipartFiles);
+            ObjectNode schedule = (ObjectNode) requestJsonHandler.getObjectValue("schedule",ObjectNode.class);
+            if(schedule!=null){
+                if(!schedule.has("meetingTypeId")){
+                    return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide meetingTypeId in schedule node");
+                }
+                if(!schedule.has("date")){
+                    return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide date in schedule node");
+                }
+                if(!schedule.has("start") && !schedule.has("end")){
+                    return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide start & end time in schedule node");
+                }
+            }
+            return planboardApiService.createPlanboard(userId,planboardId.trim(),workspaceId.trim(),domainId.trim(),subdomainId.trim(),markAsDefault,name,description,scope,geography,endDate,members,remark,schedule,multipartFiles);
             } catch (IOException e) {
                 log.error("Exception occurred in /create-planboard : {}",e.getMessage());
             }

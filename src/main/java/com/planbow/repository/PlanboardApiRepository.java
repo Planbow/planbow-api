@@ -1,5 +1,6 @@
 package com.planbow.repository;
 
+import com.planbow.documents.global.Organization;
 import com.planbow.documents.planboard.Attachments;
 import com.planbow.documents.planboard.Planboard;
 import com.planbow.documents.planboard.PlanboardNodes;
@@ -39,6 +40,15 @@ public class PlanboardApiRepository extends MongoDbRepository {
         }
         query.addCriteria(criteria);
         return  mongoTemplate.findOne (query,PromptResults.class);
+    }
+
+    public boolean isPlanboardExists(String name,String userId,String workspaceId){
+        Query query= new Query();
+        Criteria criteria=  Criteria.where("name").regex("^"+name+"$","i");
+        criteria= criteria.and("userId").is(userId);
+        criteria= criteria.and("workspaceId").is(workspaceId);
+        query.addCriteria(criteria);
+        return mongoTemplate.exists(query,Planboard.class);
     }
 
     public Planboard saveOrUpdatePlanboard(Planboard planboard){

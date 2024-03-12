@@ -11,12 +11,11 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -57,15 +56,32 @@ public class PlanbowUtility {
         return temporaryPlanboard;
     }
 
-    public static Instant formatStringToInstant(String date){
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+    public static Instant formatStringToInstant(String date,String pattern){
+        if(StringUtils.isEmpty(pattern))
+            pattern= "dd-MM-yyyy";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
         LocalDate localDate = LocalDate.parse(date, formatter);
         return localDate.atStartOfDay(ZoneId.of("UTC")).toInstant();
     }
 
-    public static String formatInstantToString(Instant instant){
+    public static Instant formatStringTimeToInstant(String time,String pattern){
+        if(StringUtils.isEmpty(pattern))
+            pattern="hh:mm a";
+
+        DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+                .parseCaseInsensitive()
+                .appendPattern(pattern)
+                .toFormatter(Locale.ENGLISH);
+        LocalTime localTime = LocalTime.parse(time, formatter);
+        ZonedDateTime zonedDateTime = ZonedDateTime.of(LocalDate.now(), localTime, ZoneId.systemDefault());
+        return zonedDateTime.toInstant();
+    }
+
+    public static String formatInstantToString(Instant instant,String pattern){
+        if(StringUtils.isEmpty(pattern))
+            pattern="dd-MM-yyyy";
         LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, java.time.ZoneId.systemDefault());
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
         return localDateTime.format(formatter);
     }
 

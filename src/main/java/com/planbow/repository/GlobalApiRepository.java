@@ -70,4 +70,12 @@ public class GlobalApiRepository extends MongoDbRepository {
         query.addCriteria(criteria);
         return (List<MeetingType>) getDocuments(MeetingType.class,query);
     }
+
+    public MeetingType getMeetingTypesById(String id){
+        Query query = new Query();
+        Criteria criteria= Criteria.where("active").is(true);
+         criteria= criteria.and("id").is(id);
+        query.addCriteria(criteria);
+        return mongoTemplate.findOne(query,MeetingType.class);
+    }
 }
