@@ -415,10 +415,11 @@ public class PlanboardApiService {
         businessArea.put("geography",planboard.getGeography());
         data.set("businessArea",businessArea);
 
-        Set<String> ids  = planboard.getMembers().stream().map(Members::getUserId).collect(Collectors.toSet());
-        List<UserEntity> userEntities = planbowHibernateRepository.getUserEntities(null,new ArrayList<>(ids));
         ArrayNode members  =objectMapper.createArrayNode();
         if(!CollectionUtils.isEmpty(planboard.getMembers())){
+            Set<String> ids  = planboard.getMembers().stream().map(Members::getUserId).collect(Collectors.toSet());
+            List<UserEntity> userEntities = planbowHibernateRepository.getUserEntities(null,new ArrayList<>(ids));
+
             planboard.getMembers().forEach(e->{
                 ObjectNode member  = objectMapper.createObjectNode();
                 member.put("userId",e.getUserId());
