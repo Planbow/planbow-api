@@ -176,7 +176,7 @@ public class PlanboardApiService {
             geography=" ";
         String query =
                 """
-                        Provide Business strategy steps for {domain} business focusing on {subdomain} focusing in {geography} market. Key departments to focus on {scope}.format pointers in a flat sequential structure.
+                        Provide Business strategy steps for {domain} business focusing on {subdomain} focusing in {geography} market. Key departments to focus on {scope}
                         Provide the results in array of object that contains title and description as string
                         {format}
                         """;
@@ -190,14 +190,11 @@ public class PlanboardApiService {
         PromptTemplate promptTemplate = new PromptTemplate(query,map);
         Prompt prompt = promptTemplate.create();
         Generation generation = chatClient.call(prompt).getResult();
-        String content  = generation.getOutput().getContent();
-        System.out.println(content);
         NodeData nodeData;
         try{
-            ObjectNode node=  objectMapper.readValue(content,ObjectNode.class);
             nodeData = outputParser.parse(generation.getOutput().getContent());
            promptResults.setStrategicNodes(nodeData.getNodeResponses());
-            log.info("Executing openAiStrategicNodes() method completed for promptId: {} ",promptResults.getId());
+            log.info("Executing of openAiStrategicNodes() method completed for promptId: {} ",promptResults.getId());
         }catch (Exception e){
             log.error("Exception occurred in generateNodes() method : {}",e.getMessage());
         }
@@ -235,6 +232,7 @@ public class PlanboardApiService {
         PromptValidation promptValidation;
         try{
             promptValidation = outputParser.parse(content);
+            log.info("Executing of openAiPromptValidation() method completed ");
         }catch (Exception e){
             log.error("Exception occurred in validatePrompt() method : {}",e.getMessage());
             promptValidation = new PromptValidation();
