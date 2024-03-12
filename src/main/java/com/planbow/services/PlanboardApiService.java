@@ -385,9 +385,9 @@ public class PlanboardApiService {
                 planboard.getMembers().forEach(e->{
                     if(!StringUtils.isEmpty(e.getUserId())){
                         UserEntity userEntity  = PlanbowUtility.getUserEntity(userEntities,Long.valueOf(e.getUserId()));
-                        emailService.planboardInvite(planboard,owner,userEntity,e.getRole(),start);
+                        emailService.planboardInvite(planboard,owner,userEntity,null,e.getRole(),start);
                     }else{
-                        emailService.planboardInvite(planboard,owner,e.getEmailId(),e.getRole(),start);
+                        emailService.planboardInvite(planboard,owner,null,e.getEmailId(),e.getRole(),start);
                     }
                 });
             }

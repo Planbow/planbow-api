@@ -43,7 +43,6 @@ public class PlanboardApiController {
         this.planboardApiService = planboardApiService;
     }
 
-
     @PostMapping("/validate-prompt")
     public ResponseEntity<ResponseJsonHandler> validatePrompt(@RequestBody RequestJsonHandler requestJsonHandler){
         String domainId = requestJsonHandler.getStringValue("domainId");
@@ -139,7 +138,6 @@ public class PlanboardApiController {
         if(StringUtils.isEmpty(planboardId))
             return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide planboardId");
         return planboardApiService.planboardSummary(userId,planboardId.trim());
-
     }
 
 }
