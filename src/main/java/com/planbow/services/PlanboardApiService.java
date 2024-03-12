@@ -227,7 +227,6 @@ public class PlanboardApiService {
         Prompt prompt = promptTemplate.create();
         Generation generation = chatClient.call(prompt).getResult();
         String content=generation.getOutput().getContent();
-        System.out.println(content);
         PromptValidation promptValidation;
         try{
             promptValidation = outputParser.parse(content);
@@ -279,19 +278,16 @@ public class PlanboardApiService {
 
         planboard  = planboardApiRepository.saveOrUpdatePlanboard(planboard);
         Planboard finalPlanboard = planboard;
-
-        // Initialize Attachment For Planboard
-        if(multipartFiles!=null){
-            initializeAttachments(finalPlanboard,multipartFiles);
-        }
-
         // Initialize Strategic Nodes For Planboard
         initializeStrategicNodes(planboard);
         // Initialize Event
         initializeEvents(planboard,schedule);
         // Invite Members
         inviteMembers(planboard,schedule);
-
+        // Initialize Attachment For Planboard
+        if(multipartFiles!=null){
+            initializeAttachments(finalPlanboard,multipartFiles);
+        }
         ObjectNode data  = objectMapper.createObjectNode();
         data.put("planboardId",planboard.getId());
         return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
@@ -335,7 +331,6 @@ public class PlanboardApiService {
             }
         }).start();
     }
-
     @Async
     public void initializeEvents(Planboard planboard,ObjectNode schedule){
         new Thread(()->{
@@ -367,7 +362,6 @@ public class PlanboardApiService {
 
         }).start();
     }
-
     @Async
     public void inviteMembers(Planboard planboard,ObjectNode schedule){
         new Thread(()->{
@@ -396,7 +390,6 @@ public class PlanboardApiService {
             }
         }).start();
     }
-
     public ResponseEntity<ResponseJsonHandler> planboardSummary(String userId, String planboardId) {
         Planboard planboard  = planboardApiRepository.getPlanboardById(planboardId);
         if(planboard==null)
