@@ -95,7 +95,7 @@
                 font-weight: 500;
               "
                 >
-                    Hey ${name},
+                    Hey ${userName},
                 </p>
                 <p
                         style="
@@ -105,18 +105,14 @@
                 letter-spacing: 0.56px;
               "
                 >
-                    <b>${userName}</b> has invited you as <b>${role}</b> to planboard
+                    <b>${ownerName}</b> has invited you as <b>${role}</b> to planboard
                     <br/><br/>
                     <span style=" margin: 0;font-size: 30px;font-weight: 600;
                      color: #ba3d4f;">
                         "${planboardName}"
                    </span>
                 <p style="margin-top: 60px;">
-                    ${userName} has scheduled a meeting for this planboard
-                    <br/><br/>
-                    Title:  ${eventTitle}
-                    <br/><br/>
-                    Date :  ${eventDate}
+                    ${scheduleContent}
 
                 </p>
 
@@ -125,7 +121,7 @@
                 margin-top: 60px;
                 font-size: 30px;
                 font-weight: 600;
-                letter-spacing: 5px;
+                letter-spacing: 2px;
                 color: #ba3d4f;
               ">
                     <a  style="border: 1px solid #ccc;
@@ -142,7 +138,7 @@
                         color: #fff;
                         background-color: #0e69e8;
                         border-color: #0e69e8;" href="${verifyUrl}">
-                        Explore
+                        Accept & Explore
                     </a>
                 </p>
             </div>

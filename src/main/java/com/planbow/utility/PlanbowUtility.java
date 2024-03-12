@@ -11,9 +11,11 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -140,5 +142,18 @@ public class PlanbowUtility {
         } else {
             return String.format("%.2f GB", bytes / (1024.0 * 1024 * 1024));
         }
+    }
+
+    public static String extractNameFromEmail(String emailAddress) {
+        Pattern pattern = Pattern.compile("^(.+)@.*$");
+        Matcher matcher = pattern.matcher(emailAddress);
+        if (matcher.matches()) {
+            return matcher.group(1);
+        }
+        return null;
+    }
+    public static String formatDate(Date date){
+        SimpleDateFormat outputFormat = new SimpleDateFormat("dd MMM yyyy");
+        return  outputFormat.format(date);
     }
 }

@@ -22,6 +22,10 @@ public class PlanbowHibernateRepository extends HibernateRepository {
     @PersistenceContext
     private EntityManager entityManager;
 
+    public UserEntity getUserEntity(Long id) {
+        return (UserEntity) getEntity(UserEntity.class,id);
+    }
+
     public List<UserEntity> getUserEntities(String email, List<String> userIds){
         CriteriaBuilder criteriaBuilder  = entityManager.getCriteriaBuilder();
         CriteriaQuery<UserEntity> userEntityCriteriaQuery= criteriaBuilder.createQuery(UserEntity.class);

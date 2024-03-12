@@ -52,7 +52,13 @@ public class PlanboardApiService {
     private FileStorageServices fileStorageServices;
     private PlanbowHibernateRepository planbowHibernateRepository;
     private GlobalApiRepository globalApiRepository;
+    private EmailService emailService;
 
+
+    @Autowired
+    public void setEmailService(EmailService emailService) {
+        this.emailService = emailService;
+    }
 
     @Autowired
     public void setGlobalApiRepository(GlobalApiRepository globalApiRepository) {
@@ -259,7 +265,6 @@ public class PlanboardApiService {
             planboard.setMembers(members);
         }
 
-
         planboard.setName(name);
         planboard.setDescription(description);
         planboard.setRemark(remark);
@@ -279,9 +284,10 @@ public class PlanboardApiService {
 
         // Initialize Strategic Nodes For Planboard
         initializeStrategicNodes(planboard);
-
         // Initialize Event
         initializeEvents(planboard,schedule);
+        // Invite Members
+        inviteMembers(planboard,schedule);
 
         ObjectNode data  = objectMapper.createObjectNode();
         data.put("planboardId",planboard.getId());
@@ -356,6 +362,35 @@ public class PlanboardApiService {
                 planboardApiRepository.saveEvents(events);
             }
 
+        }).start();
+    }
+
+    @Async
+    public void inviteMembers(Planboard planboard,ObjectNode schedule){
+        new Thread(()->{
+            UserEntity owner  = planbowHibernateRepository.getUserEntity(Long.valueOf(planboard.getUserId()));
+            Instant start;
+            if(schedule!=null){
+                start=convertStringToInstantUTC(schedule.get("date").asText()+" "+schedule.get("start").asText());
+            } else {
+                start = null;
+            }
+            Set<String> ids=new HashSet<>();
+            if(!CollectionUtils.isEmpty(planboard.getMembers())){
+                ids.addAll(planboard.getMembers().stream().map(Members::getUserId).filter(userId -> !StringUtils.isEmpty(userId)).collect(Collectors.toSet()));
+            }
+            List<UserEntity> userEntities  = planbowHibernateRepository.getUserEntities(null,new ArrayList<>(ids));
+
+            if(!CollectionUtils.isEmpty(planboard.getMembers())){
+                planboard.getMembers().forEach(e->{
+                    if(!StringUtils.isEmpty(e.getUserId())){
+                        UserEntity userEntity  = PlanbowUtility.getUserEntity(userEntities,Long.valueOf(e.getUserId()));
+                        emailService.planboardInvite(planboard,owner,userEntity,e.getRole(),start);
+                    }else{
+                        emailService.planboardInvite(planboard,owner,e.getEmailId(),e.getRole(),start);
+                    }
+                });
+            }
         }).start();
     }
 

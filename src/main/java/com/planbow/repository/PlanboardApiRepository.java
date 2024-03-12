@@ -84,6 +84,14 @@ public class PlanboardApiRepository extends MongoDbRepository {
         saveDocuments(events);
     }
 
+    public Events getEventByPlanboardId(String planboardId){
+        Query query = new Query();
+        Criteria criteria= Criteria.where("active").is(true);
+        criteria= criteria.and("planboardId").is(planboardId);
+        query.addCriteria(criteria);
+        return mongoTemplate.findOne(query, Events.class);
+    }
+
     public List<Attachments> getAttachments(String planboardId,String type){
         Query query = new Query();
         Criteria criteria= Criteria.where("active").is(true);
