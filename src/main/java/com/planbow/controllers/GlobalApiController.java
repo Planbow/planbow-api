@@ -56,7 +56,7 @@ public class GlobalApiController {
     @PostMapping("/get-meeting-types")
     public ResponseEntity<ResponseJsonHandler> getMeetingTypes(@RequestBody RequestJsonHandler requestJsonHandler){
         String search = requestJsonHandler.getStringValue("search");
-        return globalApiService.getMeetingTypes();
+        return globalApiService.getMeetingTypes(search);
     }
 
 }

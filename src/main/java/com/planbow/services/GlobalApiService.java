@@ -140,7 +140,7 @@ public class GlobalApiService {
         return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
     }
 
-    public ResponseEntity<ResponseJsonHandler> getMeetingTypes() {
+    public ResponseEntity<ResponseJsonHandler> getMeetingTypes(String search) {
         List<MeetingType> meetingTypes  = globalApiRepository.getMeetingTypes();
         ArrayNode data  = objectMapper.createArrayNode();
         meetingTypes.forEach(e->{
