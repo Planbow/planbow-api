@@ -419,7 +419,6 @@ public class PlanboardApiService {
         if(!CollectionUtils.isEmpty(planboard.getMembers())){
             Set<String> ids  = planboard.getMembers().stream().map(Members::getUserId).collect(Collectors.toSet());
             List<UserEntity> userEntities = planbowHibernateRepository.getUserEntities(null,new ArrayList<>(ids));
-
             planboard.getMembers().forEach(e->{
                 ObjectNode member  = objectMapper.createObjectNode();
                 member.put("userId",e.getUserId());
