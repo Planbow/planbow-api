@@ -226,9 +226,11 @@ public class PlanboardApiService {
         PromptTemplate promptTemplate = new PromptTemplate(query,map);
         Prompt prompt = promptTemplate.create();
         Generation generation = chatClient.call(prompt).getResult();
+        String content=generation.getOutput().getContent();
+        System.out.println(content);
         PromptValidation promptValidation;
         try{
-            promptValidation = outputParser.parse(generation.getOutput().getContent());
+            promptValidation = outputParser.parse(content);
         }catch (Exception e){
             log.error("Exception occurred in validatePrompt() method : {}",e.getMessage());
             promptValidation = new PromptValidation();
