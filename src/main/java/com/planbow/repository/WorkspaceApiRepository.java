@@ -1,6 +1,7 @@
 package com.planbow.repository;
 
 import com.planbow.documents.global.Organization;
+import com.planbow.documents.planboard.Events;
 import com.planbow.documents.planboard.Planboard;
 import com.planbow.documents.workspace.Workspace;
 import com.planbow.util.data.support.repository.MongoDbRepository;
@@ -70,5 +71,21 @@ public class WorkspaceApiRepository extends MongoDbRepository {
         criteria= criteria.and("workspaceId").is(workspaceId);
         query.addCriteria(criteria);
         return mongoTemplate.count(query, Planboard.class);
+    }
+
+    public long getEventCounts(String planboardId){
+        Query query = new Query();
+        Criteria criteria= Criteria.where("active").is(true);
+        criteria= criteria.and("planboardId").is(planboardId);
+        query.addCriteria(criteria);
+        return mongoTemplate.count(query, Events.class);
+    }
+
+    public List<Planboard> getPlanboards(String workspaceId,String userId){
+        Query query = new Query();
+        Criteria criteria= Criteria.where("userId").is(userId);
+        criteria= criteria.and("workspaceId").is(workspaceId);
+        query.addCriteria(criteria);
+        return (List<Planboard>) getDocuments(Planboard.class,query);
     }
 }

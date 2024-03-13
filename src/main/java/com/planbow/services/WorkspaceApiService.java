@@ -5,12 +5,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.planbow.documents.global.Organization;
+import com.planbow.documents.planboard.Members;
+import com.planbow.documents.planboard.Planboard;
 import com.planbow.documents.workspace.Workspace;
+import com.planbow.entities.user.UserEntity;
 import com.planbow.repository.GlobalApiRepository;
+import com.planbow.repository.PlanbowHibernateRepository;
 import com.planbow.repository.WorkspaceApiRepository;
 import com.planbow.util.json.handler.request.RequestJsonHandler;
 import com.planbow.util.json.handler.response.ResponseJsonHandler;
 import com.planbow.util.json.handler.response.util.ResponseJsonUtil;
+import com.planbow.utility.PlanbowUtility;
 import io.micrometer.common.util.StringUtils;
 import jakarta.transaction.Transactional;
 import lombok.extern.log4j.Log4j2;
@@ -18,10 +23,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Log4j2
@@ -29,6 +35,13 @@ import java.util.Map;
 public class WorkspaceApiService {
     private WorkspaceApiRepository workspaceApiRepository;
     private GlobalApiRepository globalApiRepository;
+    private PlanbowHibernateRepository planbowHibernateRepository;
+
+
+    @Autowired
+    public void setPlanbowHibernateRepository(PlanbowHibernateRepository planbowHibernateRepository) {
+        this.planbowHibernateRepository = planbowHibernateRepository;
+    }
 
     @Autowired
     public void setGlobalApiRepository(GlobalApiRepository globalApiRepository) {
@@ -141,7 +154,6 @@ public class WorkspaceApiService {
             workspace.setPinned(requestJsonHandler.getBooleanValue("pinned"));
         }
 
-
         workspace.setModifiedOn(Instant.now());
         workspaceApiRepository.saveOrUpdateWorkspace(workspace);
         return ResponseJsonUtil.getResponse(HttpStatus.OK,"Workspace successfully updated");
@@ -160,7 +172,6 @@ public class WorkspaceApiService {
             return ResponseJsonUtil.getResponse(HttpStatus.UNAUTHORIZED,"Provided workspaceId doesn't belong to given organization");
         }
 
-
         ArrayNode boards  = objectMapper.createArrayNode();
         ObjectNode node = objectMapper.createObjectNode();
         node.put("id",workspace.getId());
@@ -169,8 +180,51 @@ public class WorkspaceApiService {
         node.put("active",workspace.isActive());
         node.put("pinned",workspace.isPinned());
         node.set("createdOn",objectMapper.valueToTree(workspace.getCreatedOn()));
+        List<Planboard> planboards = workspaceApiRepository.getPlanboards(workspace.getId(),workspace.getUserId());
+        Set<String> ids  =planboards.stream().filter(dt-> !CollectionUtils.isEmpty(dt.getMembers())).flatMap(e-> e.getMembers().stream().map(Members::getUserId).filter(id ->!StringUtils.isEmpty(id))).collect(Collectors.toSet());
+        List<UserEntity> userEntities  = planbowHibernateRepository.getUserEntities(null,new ArrayList<>(ids));
+        node.put("planBoardCount",planboards.size());
 
-        node.put("planBoardCount",workspaceApiRepository.getPlanboardCount(workspace.getId(),workspace.getUserId()));
+        planboards.forEach(e->{
+           ObjectNode data  = objectMapper.createObjectNode();
+
+            data.put("planboardId",e.getId());
+            data.put("name",e.getName());
+            data.put("description",e.getDescription());
+            data.put("endDate", PlanbowUtility.formatInstantToString(e.getEndDate(),null));
+            data.put("createdOn", PlanbowUtility.formatInstantToString(e.getCreatedOn(),null));
+
+            data.put("events", workspaceApiRepository.getEventCounts(e.getId()));
+            data.put("actionItems",0);
+            data.put("focusAreas",0);
+
+            ArrayNode members  =objectMapper.createArrayNode();
+            if(!CollectionUtils.isEmpty(e.getMembers())){
+                e.getMembers().forEach(member->{
+                    ObjectNode memberNode  = objectMapper.createObjectNode();
+                    memberNode.put("userId",member.getUserId());
+                    memberNode.put("email",member.getEmailId());
+                    memberNode.put("status",member.getStatus());
+                    memberNode.put("role",member.getRole());
+
+                    UserEntity userEntity  = PlanbowUtility.getUserEntity(userEntities,Long.valueOf(member.getUserId()));
+                    if(userEntity!=null){
+                        memberNode.put("name",userEntity.getName());
+                        memberNode.put("profilePic",userEntity.getProfilePic());
+                        memberNode.put("gender",userEntity.getGender());
+                    }else{
+                        memberNode.set("name",objectMapper.valueToTree(null));
+                        memberNode.set("profilePic",objectMapper.valueToTree(null));
+                        memberNode.set("gender",objectMapper.valueToTree(null));
+                    }
+
+                    members.add(memberNode);
+                });
+            }
+            data.set("members",members);
+            boards.add(data);
+        });
+
         node.set("planBoards",boards);
         return ResponseJsonUtil.getResponse(HttpStatus.OK,node);
 
