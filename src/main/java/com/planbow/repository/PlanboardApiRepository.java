@@ -8,9 +8,11 @@ import com.planbow.util.data.support.repository.MongoDbRepository;
 import io.micrometer.common.util.StringUtils;
 import jakarta.transaction.Transactional;
 import lombok.extern.log4j.Log4j2;
+import org.bson.Document;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
@@ -66,6 +68,21 @@ public class PlanboardApiRepository extends MongoDbRepository {
 
     public TemporaryPlanboard  getTemporaryPlanboardById(String id){
         return (TemporaryPlanboard) getDocument(TemporaryPlanboard.class,id);
+    }
+
+    public List<PlanboardNodesAggregation>  getPlanboardNodes(String planboardId){
+        Query query= new Query();
+        Criteria criteria=  Criteria.where("active").is(true);
+        criteria= criteria.and("planboardId").is(planboardId);
+        AddFieldsOperation addFieldsOperation  = Aggregation.addFields().addField("tmpId").withValue(new Document("$toString","$_id")).build();
+        MatchOperation matchOperation  = Aggregation.match(criteria);
+        AggregationOperation graphLookupOperation = Aggregation.graphLookup("planboardNodes")
+                .startWith("tmpId")
+                .connectFrom("tmpId")
+                .connectTo("parentId")
+                .as("children");
+        TypedAggregation<Document> aggregation = TypedAggregation.newAggregation(Document.class,matchOperation,addFieldsOperation, graphLookupOperation);
+        return mongoTemplate.aggregate(aggregation, "planboardNodes", PlanboardNodesAggregation.class).getMappedResults();
     }
 
     public PromptResults saveOrUpdatePromptResults(PromptResults promptResults){

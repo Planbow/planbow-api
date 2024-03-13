@@ -140,4 +140,13 @@ public class PlanboardApiController {
         return planboardApiService.planboardSummary(userId,planboardId.trim());
     }
 
+    @PostMapping("/get-planboard-nodes")
+    public ResponseEntity<ResponseJsonHandler> getPlanboardNodes(@RequestBody RequestJsonHandler requestJsonHandler){
+        String userId  = requestJsonHandler.getStringValue("userId");
+        String planboardId  = requestJsonHandler.getStringValue("planboardId");
+        if(StringUtils.isEmpty(planboardId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide planboardId");
+        return planboardApiService.getPlanboardNodes(planboardId,userId);
+    }
+
 }

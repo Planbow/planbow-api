@@ -23,6 +23,7 @@ import com.planbow.utility.FileProcessor;
 import com.planbow.utility.PlanbowUtility;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
+import org.bson.Document;
 import org.springframework.ai.chat.Generation;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
@@ -35,6 +36,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -471,6 +473,26 @@ public class PlanboardApiService {
                 data.add(node);
             });
         }
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
+    }
+    public ResponseEntity<ResponseJsonHandler> getPlanboardNodes(String planboardId,String userId) {
+        ArrayNode data  = objectMapper.createArrayNode();
+        List<PlanboardNodesAggregation> documents = planboardApiRepository.getPlanboardNodes(planboardId);
+
+        documents.parallelStream().forEach(e->{
+                    Set<String> ids = e.getChildren().parallelStream().map(PlanboardNodes::getId).collect(Collectors.toSet());
+                    ObjectNode node  = objectMapper.createObjectNode();
+                    node.put("id",e.getId());
+                    node.put("title",e.getTitle());
+                    node.put("description",e.getDescription());
+                    node.put("color",e.getColor());
+                    node.put("parentId",e.getParentId());
+                    node.put("parentId",e.getParentId());
+                    node.put("createdOn",PlanbowUtility.formatInstantToString(e.getCreatedOn(),null));
+                    node.set("childIds",objectMapper.valueToTree(ids));
+                    data.add(node);
+                }
+        );
         return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
     }
 }
