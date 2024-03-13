@@ -103,16 +103,62 @@ public class WorkspaceApiService {
         }
         ArrayNode data  = objectMapper.createArrayNode();
         ArrayNode boards  = objectMapper.createArrayNode();
-        workspaces.forEach(e->{
+        workspaces.forEach(workspace->{
             ObjectNode node = objectMapper.createObjectNode();
-            node.put("id",e.getId());
-            node.put("name",e.getName());
-            node.put("description",e.getDescription());
-            node.put("active",e.isActive());
-            node.put("pinned",e.isPinned());
-            node.set("createdOn",objectMapper.valueToTree(e.getCreatedOn()));
+            node.put("id",workspace.getId());
+            node.put("name",workspace.getName());
+            node.put("description",workspace.getDescription());
+            node.put("active",workspace.isActive());
+            node.put("pinned",workspace.isPinned());
+            node.set("createdOn",objectMapper.valueToTree(workspace.getCreatedOn()));
 
-            node.put("planBoardCount",workspaceApiRepository.getPlanboardCount(e.getId(),e.getUserId()));
+            List<Planboard> planboards = workspaceApiRepository.getPlanboards(workspace.getId(),workspace.getUserId());
+            node.put("planBoardCount",planboards.size());
+
+            Set<String> ids  =planboards.stream().filter(dt-> !CollectionUtils.isEmpty(dt.getMembers())).flatMap(e-> e.getMembers().stream().filter(ft-> !StringUtils.isEmpty(ft.getUserId())).map(Members::getUserId)).collect(Collectors.toSet());
+            List<UserEntity> userEntities  = planbowHibernateRepository.getUserEntities(null,new ArrayList<>(ids));
+            node.put("planBoardCount",planboards.size());
+
+            planboards.forEach(e->{
+                ObjectNode pbNode  = objectMapper.createObjectNode();
+
+                pbNode.put("planboardId",e.getId());
+                pbNode.put("name",e.getName());
+                pbNode.put("description",e.getDescription());
+                pbNode.put("endDate", PlanbowUtility.formatInstantToString(e.getEndDate(),null));
+                pbNode.put("createdOn", PlanbowUtility.formatInstantToString(e.getCreatedOn(),null));
+
+                pbNode.put("events", workspaceApiRepository.getEventCounts(e.getId()));
+                pbNode.put("actionItems",0);
+                pbNode.put("focusAreas",0);
+
+                ArrayNode members  =objectMapper.createArrayNode();
+                if(!CollectionUtils.isEmpty(e.getMembers())){
+                    e.getMembers().forEach(member->{
+                        ObjectNode memberNode  = objectMapper.createObjectNode();
+                        memberNode.put("userId",member.getUserId());
+                        memberNode.put("email",member.getEmailId());
+                        memberNode.put("status",member.getStatus());
+                        memberNode.put("role",member.getRole());
+
+                        UserEntity userEntity  = PlanbowUtility.getUserEntity(userEntities,StringUtils.isEmpty(member.getUserId())?null : Long.valueOf(member.getUserId()));
+                        if(userEntity!=null){
+                            memberNode.put("name",userEntity.getName());
+                            memberNode.put("profilePic",userEntity.getProfilePic());
+                            memberNode.put("gender",userEntity.getGender());
+                        }else{
+                            memberNode.set("name",objectMapper.valueToTree(null));
+                            memberNode.set("profilePic",objectMapper.valueToTree(null));
+                            memberNode.set("gender",objectMapper.valueToTree(null));
+                        }
+
+                        members.add(memberNode);
+                    });
+                }
+                pbNode.set("members",members);
+                boards.add(pbNode);
+            });
+
             node.set("planBoards",boards);
             data.add(node);
         });
@@ -207,7 +253,7 @@ public class WorkspaceApiService {
                     memberNode.put("status",member.getStatus());
                     memberNode.put("role",member.getRole());
 
-                    UserEntity userEntity  = PlanbowUtility.getUserEntity(userEntities,Long.valueOf(member.getUserId()));
+                    UserEntity userEntity  = PlanbowUtility.getUserEntity(userEntities,StringUtils.isEmpty(member.getUserId())?null : Long.valueOf(member.getUserId()));
                     if(userEntity!=null){
                         memberNode.put("name",userEntity.getName());
                         memberNode.put("profilePic",userEntity.getProfilePic());
