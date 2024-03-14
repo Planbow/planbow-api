@@ -161,4 +161,23 @@ public class PlanboardApiController {
         return planboardApiService.removeAttachment(planboardId.trim(),attachmentId.trim(),userId);
     }
 
+    @PostMapping("/add-attachment")
+    public ResponseEntity<ResponseJsonHandler> addAttachment(
+            @RequestHeader HttpHeaders headers, @RequestPart("data") String data,
+            @RequestParam(value ="files", required=false) MultipartFile[] multipartFiles){
+
+        String userId = TokenUtility.getUserId(headers);
+        RequestJsonHandler requestJsonHandler=null;
+        try {
+            requestJsonHandler=objectMapper.readValue(data,RequestJsonHandler.class);
+            String planboardId  = requestJsonHandler.getStringValue("planboardId");
+            if(StringUtils.isEmpty(planboardId))
+                return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide planboardId");
+            return planboardApiService.addAttachment(userId,planboardId.trim(),multipartFiles);
+        } catch (IOException e) {
+            log.error("Exception occurred in /add-attachment : {}",e.getMessage());
+        }
+        return ResponseJsonUtil.getResponse(HttpStatus.INTERNAL_SERVER_ERROR,"Internal Server Error");
+    }
+
 }

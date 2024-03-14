@@ -508,8 +508,24 @@ public class PlanboardApiService {
         if(attachments==null)
             return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided attachmentId does not exists");
 
-        fileStorageServices.deleteFiles(List.of(attachments.getMediaUrl()));
+        new Thread(()-> fileStorageServices.deleteFiles(List.of(attachments.getMediaUrl()))).start();
         planboardApiRepository.deleteAttachment(attachments);
         return ResponseJsonUtil.getResponse(HttpStatus.OK,"Attachment successfully deleted");
     }
+
+    public ResponseEntity<ResponseJsonHandler> addAttachment(String userId, String planboardId, MultipartFile[] multipartFiles){
+        Planboard  planboard  =  planboardApiRepository.getPlanboardById(planboardId);
+        if(planboard==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided planboardId does not exists");
+        if(!planboard.getUserId().equals(userId))
+            return ResponseJsonUtil.getResponse(HttpStatus.UNAUTHORIZED,"You are not authorized to access this planboard");
+
+        if(multipartFiles!=null){
+            initializeAttachments(planboard,multipartFiles);
+        }
+        ObjectNode data  = objectMapper.createObjectNode();
+        data.put("planboardId",planboard.getId());
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
+    }
+
 }
