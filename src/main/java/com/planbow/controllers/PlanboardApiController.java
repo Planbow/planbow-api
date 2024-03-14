@@ -149,4 +149,16 @@ public class PlanboardApiController {
         return planboardApiService.getPlanboardNodes(planboardId,userId);
     }
 
+    @PostMapping("/remove-attachment")
+    public ResponseEntity<ResponseJsonHandler> removeAttachment(@RequestBody RequestJsonHandler requestJsonHandler){
+        String userId  = requestJsonHandler.getStringValue("userId");
+        String planboardId  = requestJsonHandler.getStringValue("planboardId");
+        if(StringUtils.isEmpty(planboardId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide planboardId");
+        String attachmentId  = requestJsonHandler.getStringValue("attachmentId");
+        if(StringUtils.isEmpty(attachmentId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide attachmentId");
+        return planboardApiService.removeAttachment(planboardId.trim(),attachmentId.trim(),userId);
+    }
+
 }

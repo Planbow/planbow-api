@@ -448,6 +448,7 @@ public class PlanboardApiService {
         List<Attachments> attachments = planboardApiRepository.getAttachments(planboardId,Attachments.TYPE_ROOT);
         attachments.forEach(e->{
             ObjectNode attachment  = objectMapper.createObjectNode();
+            attachment.put("id",e.getId());
             attachment.put("name",e.getMetaData().getFileName());
             attachment.put("extension",e.getMetaData().getExtension());
             attachment.put("size",formatFileSize(e.getMetaData().getSize()));
@@ -494,5 +495,21 @@ public class PlanboardApiService {
                 }
         );
         return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
+    }
+
+
+    public ResponseEntity<ResponseJsonHandler> removeAttachment(String planboardId, String attachmentId, String userId) {
+        Planboard planboard  = planboardApiRepository.getPlanboardById(planboardId);
+        if(planboard==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided planboardId does not exists");
+        if(!planboard.getUserId().equals(userId))
+            return ResponseJsonUtil.getResponse(HttpStatus.UNAUTHORIZED,"You are not authorized to access this planboard");
+        Attachments attachments  = planboardApiRepository.getAttachment(attachmentId,planboardId);
+        if(attachments==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided attachmentId does not exists");
+
+        fileStorageServices.deleteFiles(List.of(attachments.getMediaUrl()));
+        planboardApiRepository.deleteAttachment(attachments);
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,"Attachment successfully deleted");
     }
 }

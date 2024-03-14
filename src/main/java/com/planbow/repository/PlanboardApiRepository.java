@@ -119,5 +119,18 @@ public class PlanboardApiRepository extends MongoDbRepository {
     }
 
 
+    public Attachments  getAttachment(String attachmentId,String planboardId){
+        Query query = new Query();
+        Criteria criteria= Criteria.where("active").is(true);
+        criteria= criteria.and("planboardId").is(planboardId);
+        criteria= criteria.and("id").is(attachmentId);
+        query.addCriteria(criteria);
+        return mongoTemplate.findOne(query,Attachments.class);
+    }
+
+    public void deleteAttachment(Attachments attachments){
+        deleteDocument(attachments);
+    }
+
 
 }
