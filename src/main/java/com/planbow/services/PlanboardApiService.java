@@ -17,6 +17,7 @@ import com.planbow.repository.AdminApiRepository;
 import com.planbow.repository.GlobalApiRepository;
 import com.planbow.repository.PlanboardApiRepository;
 import com.planbow.repository.PlanbowHibernateRepository;
+import com.planbow.util.json.handler.request.RequestJsonHandler;
 import com.planbow.util.json.handler.response.ResponseJsonHandler;
 import com.planbow.util.json.handler.response.util.ResponseJsonUtil;
 import com.planbow.utility.FileProcessor;
@@ -495,6 +496,53 @@ public class PlanboardApiService {
                 }
         );
         return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
+    }
+    public ResponseEntity<ResponseJsonHandler> updatePlanboard(String planboardId, String userId, RequestJsonHandler requestJsonHandler) {
+        Planboard planboard  = planboardApiRepository.getPlanboardById(planboardId);
+        if(planboard==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided planboardId does not exists");
+        if(!planboard.getUserId().equals(userId))
+            return ResponseJsonUtil.getResponse(HttpStatus.UNAUTHORIZED,"You are not authorized to access this planboard");
+
+
+        String name  = requestJsonHandler.getStringValue("name");
+        if(!StringUtils.isEmpty(name)){
+            if(!name.equals(planboard.getName())){
+                if(planboardApiRepository.isPlanboardExists(name,userId,planboard.getWorkspaceId())){
+                    return ResponseJsonUtil.getResponse(HttpStatus.CONFLICT,"Provided planboard name already exists");
+                }
+                else{
+                    planboard.setName(name.trim());
+                }
+            }
+        }
+        String description  = requestJsonHandler.getStringValue("description");
+        if(!StringUtils.isEmpty(description)){
+            if(!description.equals(planboard.getDescription())){
+                planboard.setDescription(description.trim());
+            }
+        }
+
+        String endDate  = requestJsonHandler.getStringValue("endDate");
+        if(StringUtils.isEmpty(endDate))
+            planboard.setEndDate(formatStringToInstant(endDate,null));
+
+        planboardApiRepository.saveOrUpdatePlanboard(planboard);
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,"Planboard successfully updated");
+    }
+    public ResponseEntity<ResponseJsonHandler> removeMember(String planboardId, String userId, String memberId) {
+        Planboard planboard  = planboardApiRepository.getPlanboardById(planboardId);
+        if(planboard==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided planboardId does not exists");
+        if(!planboard.getUserId().equals(userId))
+            return ResponseJsonUtil.getResponse(HttpStatus.UNAUTHORIZED,"You are not authorized to access this planboard");
+
+        if(CollectionUtils.isEmpty(planboard.getMembers())){
+
+        }
+
+        planboardApiRepository.saveOrUpdatePlanboard(planboard);
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,"Planboard successfully updated");
     }
 
 

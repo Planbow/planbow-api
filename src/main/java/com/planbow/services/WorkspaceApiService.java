@@ -102,8 +102,9 @@ public class WorkspaceApiService {
             return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"No workspace found");
         }
         ArrayNode data  = objectMapper.createArrayNode();
-        ArrayNode boards  = objectMapper.createArrayNode();
+
         workspaces.forEach(workspace->{
+            ArrayNode boards  = objectMapper.createArrayNode();
             ObjectNode node = objectMapper.createObjectNode();
             node.put("id",workspace.getId());
             node.put("name",workspace.getName());

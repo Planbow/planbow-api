@@ -149,6 +149,29 @@ public class PlanboardApiController {
         return planboardApiService.getPlanboardNodes(planboardId,userId);
     }
 
+    @PostMapping("/update-planboard")
+    public ResponseEntity<ResponseJsonHandler> updatePlanboard(@RequestBody RequestJsonHandler requestJsonHandler){
+        String userId  = requestJsonHandler.getStringValue("userId");
+        String planboardId  = requestJsonHandler.getStringValue("planboardId");
+        if(StringUtils.isEmpty(planboardId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide planboardId");
+        return planboardApiService.updatePlanboard(planboardId,userId,requestJsonHandler);
+    }
+
+    @PostMapping("/remove-member")
+    public ResponseEntity<ResponseJsonHandler> removeMember(@RequestBody RequestJsonHandler requestJsonHandler){
+        String userId  = requestJsonHandler.getStringValue("userId");
+        String planboardId  = requestJsonHandler.getStringValue("planboardId");
+        if(StringUtils.isEmpty(planboardId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide planboardId");
+
+        String memberId  = requestJsonHandler.getStringValue("memberId");
+        if(StringUtils.isEmpty(memberId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide memberId");
+
+        return planboardApiService.removeMember(planboardId,userId,memberId);
+    }
+
     @PostMapping("/remove-attachment")
     public ResponseEntity<ResponseJsonHandler> removeAttachment(@RequestBody RequestJsonHandler requestJsonHandler){
         String userId  = requestJsonHandler.getStringValue("userId");
