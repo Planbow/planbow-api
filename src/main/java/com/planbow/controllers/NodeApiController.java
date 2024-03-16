@@ -42,5 +42,39 @@ public class NodeApiController {
         return nodeApiService.addNode(userId.trim(),planboardId.trim(),parentId,title.trim(),description,nodeMetaData);
     }
 
+    @PostMapping("/delete-node")
+    public ResponseEntity<ResponseJsonHandler> deleteNode(@RequestBody RequestJsonHandler requestJsonHandler){
+        String userId  = requestJsonHandler.getStringValue("userId");
+
+        String planboardId  = requestJsonHandler.getStringValue("planboardId");
+        if(StringUtils.isEmpty(planboardId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide planboardId");
+
+        String nodeId  = requestJsonHandler.getStringValue("nodeId");
+        if(StringUtils.isEmpty(nodeId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide nodeId");
+
+        return nodeApiService.deleteNode(userId.trim(),planboardId.trim(),nodeId.trim());
+    }
+
+    @PostMapping("/connect-edge")
+    public ResponseEntity<ResponseJsonHandler> connectEdge(@RequestBody RequestJsonHandler requestJsonHandler){
+        String userId  = requestJsonHandler.getStringValue("userId");
+
+        String planboardId  = requestJsonHandler.getStringValue("planboardId");
+        if(StringUtils.isEmpty(planboardId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide planboardId");
+
+        String sourceNodeId  = requestJsonHandler.getStringValue("sourceNodeId");
+        if(StringUtils.isEmpty(sourceNodeId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide sourceNodeId");
+
+        String targetNodeId  = requestJsonHandler.getStringValue("targetNodeId");
+        if(StringUtils.isEmpty(targetNodeId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide targetNodeId");
+
+        return nodeApiService.connectEdge(userId.trim(),planboardId.trim(),sourceNodeId.trim(),targetNodeId.trim());
+    }
+
 
 }

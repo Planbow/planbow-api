@@ -34,6 +34,14 @@ public class NodeApiRepository extends MongoDbRepository {
         return (PlanboardNodes) getDocument(PlanboardNodes.class,id);
     }
 
+    public PlanboardNodes getPlanboardNode(String id,boolean active){
+        Query query= new Query();
+        Criteria criteria=  Criteria.where("active").is(active);
+        criteria= criteria.and("id").is(id);
+        query.addCriteria(criteria);
+        return mongoTemplate.findOne(query,PlanboardNodes.class);
+    }
+
     public boolean isPlanboardNodeExists(String title,String planboardId){
         Query query= new Query();
         Criteria criteria=  Criteria.where("title").regex("^"+title+"$","i");

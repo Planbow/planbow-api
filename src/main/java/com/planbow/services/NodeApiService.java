@@ -85,4 +85,29 @@ public class NodeApiService {
         data.put("nodeId",planboardNodes.getId());
         return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
     }
+
+    public ResponseEntity<ResponseJsonHandler> deleteNode(String userId, String planboardId, String nodeId) {
+        Planboard planboard  = planboardApiRepository.getPlanboardById(planboardId);
+        if(planboard==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided planboardId does not exists");
+        if(!planboard.getUserId().equals(userId))
+            return ResponseJsonUtil.getResponse(HttpStatus.UNAUTHORIZED,"You are not authorized to access this planboard");
+
+        PlanboardNodes planboardNodes  = nodeApiRepository.getPlanboardNode(nodeId,true);
+        if(planboardNodes==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided nodeId does not exists");
+        if(!planboardNodes.getPlanboardId().equals(planboardId))
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided nodeId does not belong to given planboardId");
+        if(!planboardNodes.isActive())
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided nodeId does not belong to given planboardId");
+        planboardNodes.setActive(false);
+        nodeApiRepository.saveOrUpdatePlanboardNodes(planboardNodes);
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,"Node successfully deleted");
+
+    }
+
+    public ResponseEntity<ResponseJsonHandler> connectEdge(String trim, String trim1, String trim2, String trim3) {
+
+        return null;
+    }
 }
