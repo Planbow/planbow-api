@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
-import static com.planbow.utility.PlanbowUtility.validateMemberAndRoles;
+import static com.planbow.utility.PlanbowUtility.*;
 
 @RequestMapping("/planboard")
 @RestController
@@ -164,12 +164,31 @@ public class PlanboardApiController {
         String planboardId  = requestJsonHandler.getStringValue("planboardId");
         if(StringUtils.isEmpty(planboardId))
             return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide planboardId");
-
         String memberId  = requestJsonHandler.getStringValue("memberId");
         if(StringUtils.isEmpty(memberId))
             return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide memberId");
-
+        else{
+            if(!isInteger(memberId) && !isValidEmail(memberId)){
+                return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Invalid memberId provided");
+            }
+        }
         return planboardApiService.removeMember(planboardId,userId,memberId);
+    }
+
+    @PostMapping("/add-member")
+    public ResponseEntity<ResponseJsonHandler> addMember(@RequestBody RequestJsonHandler requestJsonHandler){
+        String userId  = requestJsonHandler.getStringValue("userId");
+        String planboardId  = requestJsonHandler.getStringValue("planboardId");
+        if(StringUtils.isEmpty(planboardId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide planboardId");
+
+        List<Members> members = (List<Members>) requestJsonHandler.getListValues("members", Members.class);
+        if(!CollectionUtils.isEmpty(members)){
+            if(!validateMemberAndRoles(members)){
+                return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Invalid member object , emailId or userId is required and role must be Creator , Contributor and Viewer");
+            }
+        }
+        return planboardApiService.addMember(planboardId.trim(),userId,members);
     }
 
     @PostMapping("/remove-attachment")

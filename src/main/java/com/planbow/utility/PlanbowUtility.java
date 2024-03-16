@@ -115,6 +115,15 @@ public class PlanbowUtility {
         return !StringUtils.isEmpty(userId) || (!StringUtils.isEmpty(emailId) && isValidEmail(emailId));
     }
 
+    public static boolean isInteger(String str) {
+        try {
+            Integer.parseInt(str);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
     public static boolean isValidEmail(String email) {
         String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
         Pattern pattern = Pattern.compile(emailRegex);

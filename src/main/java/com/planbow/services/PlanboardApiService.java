@@ -536,11 +536,15 @@ public class PlanboardApiService {
             return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided planboardId does not exists");
         if(!planboard.getUserId().equals(userId))
             return ResponseJsonUtil.getResponse(HttpStatus.UNAUTHORIZED,"You are not authorized to access this planboard");
-
-        if(CollectionUtils.isEmpty(planboard.getMembers())){
-
+        if(!CollectionUtils.isEmpty(planboard.getMembers())){
+            boolean anyMatch  = planboard.getMembers().stream().anyMatch(e->(!StringUtils.isEmpty(e.getEmailId()) && e.getEmailId().equals(memberId) )|| (!StringUtils.isEmpty(e.getUserId()) && e.getUserId().equals(memberId)));
+            if(anyMatch)
+                planboard.getMembers().removeIf(e-> (!StringUtils.isEmpty(e.getEmailId()) && e.getEmailId().equals(memberId) )|| (!StringUtils.isEmpty(e.getUserId()) && e.getUserId().equals(memberId)));
+            else
+                return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Given memberId never invited to this planboard");
+        }else{
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"No members found for this planboard");
         }
-
         planboardApiRepository.saveOrUpdatePlanboard(planboard);
         return ResponseJsonUtil.getResponse(HttpStatus.OK,"Planboard successfully updated");
     }
@@ -576,4 +580,23 @@ public class PlanboardApiService {
         return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
     }
 
+    public ResponseEntity<ResponseJsonHandler> addMember(String planboardId,String userId, List<Members> members) {
+
+        Planboard planboard  = planboardApiRepository.getPlanboardById(planboardId);
+        if(planboard==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided planboardId does not exists");
+        if(!planboard.getUserId().equals(userId))
+            return ResponseJsonUtil.getResponse(HttpStatus.UNAUTHORIZED,"You are not authorized to access this planboard");
+        List<Members> membersList  = planboard.getMembers();
+        if(membersList==null)
+            membersList = new ArrayList<>();
+        if(CollectionUtils.isEmpty(members)){
+            members.forEach(e->{
+
+            });
+        }
+        // Invite Members
+        inviteMembers(planboard,null);
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,"Member successfully invited to this planboard");
+    }
 }
