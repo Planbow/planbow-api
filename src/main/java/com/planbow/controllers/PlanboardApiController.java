@@ -193,7 +193,6 @@ public class PlanboardApiController {
         return planboardApiService.addMember(planboardId.trim(),userId,member);
     }
 
-
     @PostMapping("/update-role")
     public ResponseEntity<ResponseJsonHandler> updateRole(@RequestBody RequestJsonHandler requestJsonHandler){
         String userId  = requestJsonHandler.getStringValue("userId");
