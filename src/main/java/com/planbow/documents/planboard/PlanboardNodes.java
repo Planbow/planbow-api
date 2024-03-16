@@ -24,6 +24,6 @@ public class PlanboardNodes implements BaseDocument {
     private Instant createdOn;
     private Instant modifiedOn;
     private boolean active;
-
-
+    private NodeMetaData metaData;
 }
+
