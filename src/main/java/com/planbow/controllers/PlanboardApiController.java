@@ -220,7 +220,6 @@ public class PlanboardApiController {
         return planboardApiService.updateRole(planboardId.trim(),userId.trim(),memberId.trim(),role.trim());
     }
 
-
     @PostMapping("/remove-attachment")
     public ResponseEntity<ResponseJsonHandler> removeAttachment(@RequestBody RequestJsonHandler requestJsonHandler){
         String userId  = requestJsonHandler.getStringValue("userId");
