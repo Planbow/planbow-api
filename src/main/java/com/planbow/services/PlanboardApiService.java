@@ -524,7 +524,7 @@ public class PlanboardApiService {
         }
 
         String endDate  = requestJsonHandler.getStringValue("endDate");
-        if(StringUtils.isEmpty(endDate))
+        if(!StringUtils.isEmpty(endDate))
             planboard.setEndDate(formatStringToInstant(endDate,null));
 
         planboardApiRepository.saveOrUpdatePlanboard(planboard);
@@ -580,7 +580,7 @@ public class PlanboardApiService {
         return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
     }
 
-    public ResponseEntity<ResponseJsonHandler> addMember(String planboardId,String userId, List<Members> members) {
+    public ResponseEntity<ResponseJsonHandler> addMember(String planboardId,String userId,Members member) {
 
         Planboard planboard  = planboardApiRepository.getPlanboardById(planboardId);
         if(planboard==null)
@@ -590,13 +590,17 @@ public class PlanboardApiService {
         List<Members> membersList  = planboard.getMembers();
         if(membersList==null)
             membersList = new ArrayList<>();
-        if(CollectionUtils.isEmpty(members)){
-            members.forEach(e->{
-
-            });
+        boolean anyMatch  =membersList.stream().anyMatch(e->(!StringUtils.isEmpty(e.getEmailId()) && e.getEmailId().equals(member.getEmailId()) )|| (!StringUtils.isEmpty(e.getUserId()) && e.getUserId().equals(member.getUserId())));
+        if(anyMatch)
+            return ResponseJsonUtil.getResponse(HttpStatus.CONFLICT,"Member already invited to this planboard");
+        else{
+            member.setStatus(Members.STATUS_PENDING);
+            membersList.add(member);
         }
+        planboard.setMembers(membersList);
+        planboardApiRepository.saveOrUpdatePlanboard(planboard);
         // Invite Members
-        inviteMembers(planboard,null);
+        //inviteMembers(planboard,null);
         return ResponseJsonUtil.getResponse(HttpStatus.OK,"Member successfully invited to this planboard");
     }
 }

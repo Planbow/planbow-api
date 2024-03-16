@@ -182,13 +182,15 @@ public class PlanboardApiController {
         if(StringUtils.isEmpty(planboardId))
             return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide planboardId");
 
-        List<Members> members = (List<Members>) requestJsonHandler.getListValues("members", Members.class);
-        if(!CollectionUtils.isEmpty(members)){
-            if(!validateMemberAndRoles(members)){
+        Members member = (Members) requestJsonHandler.getObjectValue("member", Members.class);
+        if(member==null){
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide member node");
+        }else{
+            if(!validateMemberAndRoles(List.of(member))){
                 return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Invalid member object , emailId or userId is required and role must be Creator , Contributor and Viewer");
             }
         }
-        return planboardApiService.addMember(planboardId.trim(),userId,members);
+        return planboardApiService.addMember(planboardId.trim(),userId,member);
     }
 
     @PostMapping("/remove-attachment")
