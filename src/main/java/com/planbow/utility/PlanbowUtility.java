@@ -107,11 +107,11 @@ public class PlanbowUtility {
 
     }
 
-    private static boolean isValidRole(String role) {
+    public static boolean isValidRole(String role) {
         return !StringUtils.isEmpty(role) &&  (role.equals("Creator") || role.equals("Contributor") || role.equals("Viewer"));
     }
 
-    private static boolean isEmailOrUserIdProvided(String userId,String emailId) {
+    public static boolean isEmailOrUserIdProvided(String userId,String emailId) {
         return !StringUtils.isEmpty(userId) || (!StringUtils.isEmpty(emailId) && isValidEmail(emailId));
     }
 

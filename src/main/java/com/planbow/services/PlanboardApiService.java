@@ -603,4 +603,22 @@ public class PlanboardApiService {
         //inviteMembers(planboard,null);
         return ResponseJsonUtil.getResponse(HttpStatus.OK,"Member successfully invited to this planboard");
     }
+
+    public ResponseEntity<ResponseJsonHandler> updateRole(String planboardId, String userId, String memberId, String role) {
+        Planboard planboard  = planboardApiRepository.getPlanboardById(planboardId);
+        if(planboard==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided planboardId does not exists");
+        if(!planboard.getUserId().equals(userId))
+            return ResponseJsonUtil.getResponse(HttpStatus.UNAUTHORIZED,"You are not authorized to access this planboard");
+        if(!CollectionUtils.isEmpty(planboard.getMembers())){
+            Optional<Members> members  = planboard.getMembers().stream().filter(e->(!StringUtils.isEmpty(e.getEmailId()) && e.getEmailId().equals(memberId ) || (!StringUtils.isEmpty(e.getUserId()) && e.getUserId().equals(memberId)))).findFirst();
+            if(members.isPresent()){
+                members.get().setRole(role);
+            }else{
+                return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided memberId does not exists");
+            }
+        }
+        planboardApiRepository.saveOrUpdatePlanboard(planboard);
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,"Role successfully updated");
+    }
 }

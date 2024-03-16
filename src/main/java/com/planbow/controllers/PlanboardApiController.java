@@ -193,6 +193,34 @@ public class PlanboardApiController {
         return planboardApiService.addMember(planboardId.trim(),userId,member);
     }
 
+
+    @PostMapping("/update-role")
+    public ResponseEntity<ResponseJsonHandler> updateRole(@RequestBody RequestJsonHandler requestJsonHandler){
+        String userId  = requestJsonHandler.getStringValue("userId");
+        String planboardId  = requestJsonHandler.getStringValue("planboardId");
+        if(StringUtils.isEmpty(planboardId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide planboardId");
+
+        String role  = requestJsonHandler.getStringValue("role");
+        if(StringUtils.isEmpty(role))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide role");
+        else{
+            if(!isValidRole(role))
+                return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide valid role");
+        }
+
+        String memberId  = requestJsonHandler.getStringValue("memberId");
+        if(StringUtils.isEmpty(memberId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide memberId");
+        else{
+            if(!isInteger(memberId) && !isValidEmail(memberId)){
+                return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Invalid memberId provided");
+            }
+        }
+        return planboardApiService.updateRole(planboardId.trim(),userId.trim(),memberId.trim(),role.trim());
+    }
+
+
     @PostMapping("/remove-attachment")
     public ResponseEntity<ResponseJsonHandler> removeAttachment(@RequestBody RequestJsonHandler requestJsonHandler){
         String userId  = requestJsonHandler.getStringValue("userId");
