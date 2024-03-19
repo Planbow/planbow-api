@@ -428,7 +428,7 @@ public class PlanboardApiService {
                 member.put("email",e.getEmailId());
                 member.put("status",e.getStatus());
                 member.put("role",e.getRole());
-                UserEntity userEntity  = PlanbowUtility.getUserEntity(userEntities,Long.valueOf(e.getUserId()));
+                UserEntity userEntity  = PlanbowUtility.getUserEntity(userEntities, !StringUtils.isEmpty(e.getUserId()) ? Long.parseLong(e.getUserId()): 0);
                 if(userEntity!=null){
                     member.put("name",userEntity.getName());
                     member.put("profilePic",userEntity.getProfilePic());
