@@ -112,6 +112,45 @@ public class NodeApiService {
         return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
     }
 
+
+    public ResponseEntity<ResponseJsonHandler> updateNode(String userId,String nodeId, String planboardId, String title, String description, NodeMetaData nodeMetaData) {
+        Planboard planboard  = planboardApiRepository.getPlanboardById(planboardId);
+        if(planboard==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided planboardId does not exists");
+        if(!planboard.getUserId().equals(userId))
+            return ResponseJsonUtil.getResponse(HttpStatus.UNAUTHORIZED,"You are not authorized to access this planboard");
+
+        PlanboardNodes planboardNodes  = nodeApiRepository.getPlanboardNode(nodeId);
+        if(planboardNodes==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided nodeId does not exists");
+
+
+        if(!StringUtils.isEmpty(title)){
+            if(!planboardNodes.getTitle().equalsIgnoreCase(title)){
+                if(nodeApiRepository.isPlanboardNodeExists(title, planboardId)){
+                    return ResponseJsonUtil.getResponse(HttpStatus.CONFLICT,"Provided node name already exists in this planboard");
+                }else{
+                    planboardNodes.setTitle(title.trim());
+                }
+            }
+        }
+
+        if(nodeMetaData!=null){
+            planboardNodes.setMetaData(nodeMetaData);
+        }
+
+        if(!StringUtils.isEmpty(description)){
+            planboardNodes.setDescription(description.trim());
+        }
+        planboardNodes.setModifiedOn(Instant.now());
+        planboardNodes.setActive(true);
+        planboardNodes  = nodeApiRepository.saveOrUpdatePlanboardNodes(planboardNodes);
+        ObjectNode data  = objectMapper.createObjectNode();
+        data.put("nodeId",planboardNodes.getId());
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
+    }
+
+
     public ResponseEntity<ResponseJsonHandler> deleteNode(String userId, String planboardId, String nodeId) {
         Planboard planboard  = planboardApiRepository.getPlanboardById(planboardId);
         if(planboard==null)

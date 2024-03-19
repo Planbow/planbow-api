@@ -58,6 +58,24 @@ public class NodeApiController {
         return nodeApiService.addNode(userId.trim(),planboardId.trim(),parentId,title.trim(),description,nodeMetaData);
     }
 
+    @PostMapping("/update-node")
+    public ResponseEntity<ResponseJsonHandler> updateNode(@RequestBody RequestJsonHandler requestJsonHandler){
+        String userId  = requestJsonHandler.getStringValue("userId");
+
+        String nodeId  = requestJsonHandler.getStringValue("nodeId");
+        if(StringUtils.isEmpty(nodeId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide nodeId");
+
+        String planboardId  = requestJsonHandler.getStringValue("planboardId");
+        if(StringUtils.isEmpty(planboardId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide planboardId");
+
+        String title  = requestJsonHandler.getStringValue("title");
+        String description  = requestJsonHandler.getStringValue("description");
+        NodeMetaData nodeMetaData  = (NodeMetaData) requestJsonHandler.getObjectValue("metaData", NodeMetaData.class);
+        return nodeApiService.updateNode(userId.trim(),nodeId.trim(),planboardId.trim(),title,description,nodeMetaData);
+    }
+
 
     @PostMapping("/delete-node")
     public ResponseEntity<ResponseJsonHandler> deleteNode(@RequestBody RequestJsonHandler requestJsonHandler){
