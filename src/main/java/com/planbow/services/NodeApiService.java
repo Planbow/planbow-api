@@ -179,9 +179,17 @@ public class NodeApiService {
         if(!planboard.getUserId().equals(userId))
             return ResponseJsonUtil.getResponse(HttpStatus.UNAUTHORIZED,"You are not authorized to access this planboard");
 
+        PlanboardNodes targetNode  = nodeApiRepository.getPlanboardNode(targetNodeId,true);
+        if(targetNode==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided targetNodeId does not exists");
 
+        PlanboardNodes sourceNode  = nodeApiRepository.getPlanboardNode(sourceNodeId,true);
+        if(sourceNode==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided sourceNodeId does not exists");
 
-        return null;
+        targetNode.setParentId(sourceNode.getId());
+        nodeApiRepository.saveOrUpdatePlanboardNodes(targetNode);
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,"Node edge successfully connected");
     }
     public ResponseEntity<ResponseJsonHandler> disconnectEdge(String userId, String planboardId, String sourceNodeId, String targetNodeId) {
 
@@ -195,7 +203,7 @@ public class NodeApiService {
 
         if(planboardNodes==null)
             return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided targetNodeId does not exists");
-        if(!StringUtils.isEmpty(planboardNodes.getPlanboardId())){
+        if(!StringUtils.isEmpty(planboardNodes.getParentId())){
             if(!planboardNodes.getParentId().equalsIgnoreCase(sourceNodeId)){
                 return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Provided sourceNodeId is not parent of targetNodeId");
             }
