@@ -433,6 +433,7 @@ public class PlanboardApiService {
                     member.put("name",userEntity.getName());
                     member.put("profilePic",userEntity.getProfilePic());
                     member.put("gender",userEntity.getGender());
+                    member.put("email",userEntity.getEmail());
                 }else{
                     member.set("name",objectMapper.valueToTree(null));
                     member.set("profilePic",objectMapper.valueToTree(null));
