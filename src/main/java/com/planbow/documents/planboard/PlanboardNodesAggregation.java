@@ -14,11 +14,11 @@ public class PlanboardNodesAggregation {
     private String planboardId;
     private String parentId;
 
-    private String color="#2563EB";
     private String userId;
     private Instant createdOn;
     private Instant modifiedOn;
     private boolean active;
+    private NodeMetaData metaData;
     private List<PlanboardNodes> children;
     List<String> childIds;
 }

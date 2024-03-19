@@ -19,7 +19,6 @@ public class PlanboardNodes implements BaseDocument {
     private String planboardId;
     private String parentId;
 
-    private String color="#2563EB";
     private String userId;
     private Instant createdOn;
     private Instant modifiedOn;

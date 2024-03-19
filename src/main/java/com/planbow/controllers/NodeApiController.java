@@ -43,7 +43,6 @@ public class NodeApiController {
         return nodeApiService.setNodesMetaData(userId.trim(),planboardId.trim(),planboardNodes);
     }
 
-
     @PostMapping("/add-node")
     public ResponseEntity<ResponseJsonHandler> addNode(@RequestBody RequestJsonHandler requestJsonHandler){
         String userId  = requestJsonHandler.getStringValue("userId");
@@ -58,6 +57,7 @@ public class NodeApiController {
         NodeMetaData nodeMetaData  = (NodeMetaData) requestJsonHandler.getObjectValue("metaData", NodeMetaData.class);
         return nodeApiService.addNode(userId.trim(),planboardId.trim(),parentId,title.trim(),description,nodeMetaData);
     }
+
 
     @PostMapping("/delete-node")
     public ResponseEntity<ResponseJsonHandler> deleteNode(@RequestBody RequestJsonHandler requestJsonHandler){

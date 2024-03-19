@@ -488,11 +488,11 @@ public class PlanboardApiService {
                     node.put("id",e.getId());
                     node.put("title",e.getTitle());
                     node.put("description",e.getDescription());
-                    node.put("color",e.getColor());
                     node.put("parentId",e.getParentId());
                     node.put("parentId",e.getParentId());
                     node.put("createdOn",PlanbowUtility.formatInstantToString(e.getCreatedOn(),null));
                     node.set("childIds",objectMapper.valueToTree(ids));
+                    node.set("metaData",objectMapper.valueToTree(e.getMetaData()));
                     data.add(node);
                 }
         );
