@@ -22,6 +22,8 @@ public class NodeApiRepository extends MongoDbRepository {
         return (PlanboardNodes) saveOrUpdateDocument(planboardNodes);
     }
 
+
+
     public PlanboardNodes getPlanboardNodeByParentId(String parentId){
         Query query= new Query();
         Criteria criteria=  Criteria.where("active").is(true);

@@ -405,6 +405,7 @@ public class PlanboardApiService {
         data.put("planboardId",planboard.getId());
         data.put("name",planboard.getName());
         data.put("description",planboard.getDescription());
+        data.put("nodeInitialization",planboard.isNodeInitialization());
         data.put("endDate", PlanbowUtility.formatInstantToString(planboard.getEndDate(),null));
         data.put("createdOn", PlanbowUtility.formatInstantToString(planboard.getCreatedOn(),null));
 

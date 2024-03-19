@@ -24,9 +24,13 @@ public class Planboard implements BaseDocument {
     private String remark;
 
     private String userId; // createdBy
+
+    private boolean nodeInitialization; // false
+
     private Instant createdOn;
     private Instant modifiedOn;
     private boolean active;
+
 
 
 }

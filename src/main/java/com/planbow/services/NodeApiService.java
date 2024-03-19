@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 
 @Service
 @Transactional
@@ -44,6 +45,31 @@ public class NodeApiService {
     public void setObjectMapper(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
+
+
+
+    public ResponseEntity<ResponseJsonHandler> setNodesMetaData(String userId, String planboardId, List<PlanboardNodes> planboardNodes) {
+        Planboard planboard  = planboardApiRepository.getPlanboardById(planboardId);
+        if(planboard==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided planboardId does not exists");
+        if(!planboard.getUserId().equals(userId))
+            return ResponseJsonUtil.getResponse(HttpStatus.UNAUTHORIZED,"You are not authorized to access this planboard");
+        new Thread(()-> {
+            planboardNodes.forEach(e->{
+                PlanboardNodes node  = nodeApiRepository.getPlanboardNode(e.getId());
+                if(node!=null){
+                    node.setMetaData(e.getMetaData());
+                    node.setModifiedOn(Instant.now());
+                    nodeApiRepository.saveOrUpdatePlanboardNodes(node);
+                }
+            });
+        }).start();
+        planboard.setNodeInitialization(true);
+        planboardApiRepository.saveOrUpdatePlanboard(planboard);
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,"Planboard node's meta data updated successfully");
+    }
+
+
 
     public ResponseEntity<ResponseJsonHandler> addNode(String userId, String planboardId, String parentId, String title, String description, NodeMetaData nodeMetaData) {
         Planboard planboard  = planboardApiRepository.getPlanboardById(planboardId);
@@ -110,4 +136,6 @@ public class NodeApiService {
 
         return null;
     }
+
+
 }
