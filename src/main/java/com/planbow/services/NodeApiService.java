@@ -171,9 +171,38 @@ public class NodeApiService {
 
     }
 
-    public ResponseEntity<ResponseJsonHandler> connectEdge(String trim, String trim1, String trim2, String trim3) {
+    public ResponseEntity<ResponseJsonHandler> connectEdge(String userId, String planboardId, String sourceNodeId, String targetNodeId) {
+
+        Planboard planboard  = planboardApiRepository.getPlanboardById(planboardId);
+        if(planboard==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided planboardId does not exists");
+        if(!planboard.getUserId().equals(userId))
+            return ResponseJsonUtil.getResponse(HttpStatus.UNAUTHORIZED,"You are not authorized to access this planboard");
+
+
 
         return null;
+    }
+    public ResponseEntity<ResponseJsonHandler> disconnectEdge(String userId, String planboardId, String sourceNodeId, String targetNodeId) {
+
+        Planboard planboard  = planboardApiRepository.getPlanboardById(planboardId);
+        if(planboard==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided planboardId does not exists");
+        if(!planboard.getUserId().equals(userId))
+            return ResponseJsonUtil.getResponse(HttpStatus.UNAUTHORIZED,"You are not authorized to access this planboard");
+
+        PlanboardNodes planboardNodes  = nodeApiRepository.getPlanboardNode(targetNodeId,true);
+
+        if(planboardNodes==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided targetNodeId does not exists");
+        if(!StringUtils.isEmpty(planboardNodes.getPlanboardId())){
+            if(!planboardNodes.getParentId().equalsIgnoreCase(sourceNodeId)){
+                return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Provided sourceNodeId is not parent of targetNodeId");
+            }
+        }
+        planboardNodes.setParentId(null);
+        nodeApiRepository.saveOrUpdatePlanboardNodes(planboardNodes);
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,"Node edge successfully disconnected");
     }
 
 
