@@ -147,9 +147,9 @@ public class ActionItemApiService {
 
         actionItems.setDescription(requestJsonHandler.getStringValue("description"));
 
-        actionItems.setPlanboardId(planboardId);
+        //actionItems.setPlanboardId(planboardId);
         actionItems.setUserId(userId);
-        actionItems.setNodeId(nodeId);
+        //actionItems.setNodeId(nodeId);
         actionItems.setParentId(requestJsonHandler.getStringValue("parentId"));
 
         actionItems.setStatus(ActionItems.STATUS_IN_PROGRESS);
