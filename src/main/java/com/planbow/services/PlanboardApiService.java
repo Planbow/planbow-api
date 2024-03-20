@@ -57,7 +57,6 @@ public class PlanboardApiService {
     private GlobalApiRepository globalApiRepository;
     private EmailService emailService;
 
-
     @Autowired
     public void setEmailService(EmailService emailService) {
         this.emailService = emailService;
@@ -97,7 +96,6 @@ public class PlanboardApiService {
     public void setPlanboardApiRepository(PlanboardApiRepository planboardApiRepository) {
         this.planboardApiRepository = planboardApiRepository;
     }
-
 
     public ResponseEntity<ResponseJsonHandler> validatePrompt(String domainId, String subdomainId, String scope, String geography,String userId){
         Domain domain = adminApiRepository.getDomainById(domainId);
@@ -168,120 +166,6 @@ public class PlanboardApiService {
         }
         return ResponseJsonUtil.getResponse(HttpStatus.OK,node);
     }
-
-    private void openAiStrategicNodes(Domain domain,SubDomain subdomain,String scope,String geography,String userId,PromptResults promptResults) {
-        log.info("Executing openAiStrategicNodes() method");
-        BeanOutputParser<NodeData> outputParser = new BeanOutputParser<>(NodeData.class);
-        if(scope==null)
-            scope=" ";
-
-        if(geography==null)
-            geography=" ";
-        String query =
-                """
-                        Provide Business strategy steps for {domain} business focusing on {subdomain} focusing in {geography} market. Key departments to focus on {scope}
-                        Provide the results in array of object that contains title and description as string
-                        {format}
-                        """;
-
-        Map<String,Object> map  = new HashMap<>();
-        map.put("domain",domain.getName());
-        map.put("subdomain",subdomain.getName());
-        map.put("geography",geography);
-        map.put("scope",scope);
-        map.put("format",outputParser.getFormat());
-        PromptTemplate promptTemplate = new PromptTemplate(query,map);
-        Prompt prompt = promptTemplate.create();
-        Generation generation = chatClient.call(prompt).getResult();
-        NodeData nodeData;
-        try{
-            nodeData = outputParser.parse(generation.getOutput().getContent());
-           promptResults.setStrategicNodes(nodeData.getNodeResponses());
-            log.info("Executing of openAiStrategicNodes() method completed for promptId: {} ",promptResults.getId());
-        }catch (Exception e){
-            log.error("Exception occurred in generateNodes() method : {}",e.getMessage());
-        }
-        planboardApiRepository.saveOrUpdatePromptResults(promptResults);
-
-    }
-    private NodeData openAiActionItems(String nodeTitle,Domain domain,SubDomain subdomain,String scope,String geography,String userId) {
-        log.info("Executing openAiActionItems() method");
-        BeanOutputParser<NodeData> outputParser = new BeanOutputParser<>(NodeData.class);
-        if(scope==null)
-            scope=" ";
-
-        if(geography==null)
-            geography=" ";
-        String query =
-                """
-                        Provide Action items for {nodeTitle} in the context of {domain} business focusing on {subdomain} focusing in {geography} market. Key departments to focus on {scope}
-                        Provide the results in array of object that contains title and description as string
-                        {format}
-                        """;
-
-        Map<String,Object> map  = new HashMap<>();
-        map.put("nodeTitle",nodeTitle);
-        map.put("domain",domain.getName());
-        map.put("subdomain",subdomain.getName());
-        map.put("geography",geography);
-        map.put("scope",scope);
-        map.put("format",outputParser.getFormat());
-        PromptTemplate promptTemplate = new PromptTemplate(query,map);
-        Prompt prompt = promptTemplate.create();
-        Generation generation = chatClient.call(prompt).getResult();
-        NodeData nodeData = null;
-        try{
-            System.out.println(generation.getOutput().getContent());
-            nodeData = outputParser.parse(generation.getOutput().getContent());
-            log.info("Executing of openAiActionItems() method completed");
-        }catch (Exception e){
-            log.error("Exception occurred in openAiActionItems() method : {}",e.getMessage());
-        }
-        return nodeData;
-
-    }
-
-
-    private  PromptValidation openAiPromptValidation(String domain, String subdomain, String scope, String geography){
-        log.info("Executing openAiPromptValidation() method");
-        BeanOutputParser<PromptValidation> outputParser = new BeanOutputParser<>(PromptValidation.class);
-        if(scope==null)
-            scope=" ";
-
-        if(geography==null)
-            geography=" ";
-        String query =
-                """
-                Validate this prompt from the business point of view and respond with positive or negative if the prompt makes sense. If this comes out to be negative then provide one line reason as well -\s
-                Provide Business strategy steps for {domain} business focusing on {subdomain} focusing in {geography} market. Key departments to focus on {scope}.
-                Provide the results in object that contains status and reason as string
-                {format}
-                """;
-
-        Map<String,Object> map  = new HashMap<>();
-        map.put("domain",domain);
-        map.put("subdomain",subdomain);
-        map.put("geography",geography);
-        map.put("scope",scope);
-        map.put("format",outputParser.getFormat());
-        PromptTemplate promptTemplate = new PromptTemplate(query,map);
-        Prompt prompt = promptTemplate.create();
-        Generation generation = chatClient.call(prompt).getResult();
-        String content=generation.getOutput().getContent();
-        PromptValidation promptValidation;
-        try{
-            promptValidation = outputParser.parse(content);
-            log.info("Executing of openAiPromptValidation() method completed ");
-        }catch (Exception e){
-            log.error("Exception occurred in validatePrompt() method : {}",e.getMessage());
-            promptValidation = new PromptValidation();
-            promptValidation.setStatus("negative");
-            promptValidation.setReason("Unable to process prompt "+e.getMessage());
-        }
-        return promptValidation;
-    }
-
-
     public ResponseEntity<ResponseJsonHandler> createPlanboard(String userId, String planboardId, String workspaceId, String domainId, String subdomainId,boolean markAsDefault,String name, String description, String scope, String geography, String endDate, List<Members> members,String remark,ObjectNode schedule, MultipartFile[] multipartFiles){
         Planboard  planboard  =  planboardApiRepository.getPlanboardById(planboardId);
         if(planboard!=null)
@@ -320,6 +204,7 @@ public class PlanboardApiService {
 
         planboard  = planboardApiRepository.saveOrUpdatePlanboard(planboard);
         Planboard finalPlanboard = planboard;
+
         // Initialize Strategic Nodes For Planboard
         initializeStrategicNodes(planboard);
         // Initialize Event
@@ -335,138 +220,6 @@ public class PlanboardApiService {
         return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
     }
 
-    @Async
-    public void initializeAttachments(Planboard planboard ,final MultipartFile[] files){
-        for (MultipartFile multipartFile : files) {
-            try {
-                new Thread(new FileProcessor(planboard,multipartFile,fileStorageServices,planboardApiRepository)).start();
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-
-        }
-    }
-
-    @Async
-    public void initializeStrategicNodes(Planboard planboard){
-        new Thread(()->{
-            TemporaryPlanboard temporaryPlanboard  = planboardApiRepository.getTemporaryPlanboardById(planboard.getId());
-            if(temporaryPlanboard!=null){
-                PromptResults promptResults  = planboardApiRepository.getPromptResultsById(temporaryPlanboard.getPromptId());
-                if(promptResults!=null && !CollectionUtils.isEmpty(promptResults.getStrategicNodes())){
-                    String parentId=null;
-                    for (NodeResponse e : promptResults.getStrategicNodes()) {
-                        PlanboardNodes  planboardNodes  = new PlanboardNodes();
-                        planboardNodes.setPlanboardId(planboard.getId());
-                        planboardNodes.setTitle(e.getTitle());
-                        planboardNodes.setDescription(e.getDescription());
-                        planboardNodes.setParentId(parentId);
-                        planboardNodes.setUserId(planboard.getUserId());
-                        planboardNodes.setCreatedOn(Instant.now());
-                        planboardNodes.setModifiedOn(Instant.now());
-                        planboardNodes.setActive(true);
-                        planboardNodes = planboardApiRepository.saveOrUpdatePlanboardNodes(planboardNodes);
-                        parentId=planboardNodes.getId();
-                        initializeActionItems(planboard,planboardNodes);
-                    }
-                }
-            }
-        }).start();
-    }
-
-    @Async
-    public void initializeActionItems(Planboard planboard,PlanboardNodes nodes){
-        new Thread(()->{
-            Domain domain = adminApiRepository.getDomainById(planboard.getDomainId());
-            SubDomain subDomain = adminApiRepository.getSubdomainById(planboard.getSubdomainId());
-
-            NodeData nodeData= openAiActionItems(nodes.getTitle(),domain,subDomain,planboard.getScope(),planboard.getGeography(),planboard.getUserId());
-            System.out.println(nodeData);
-            if(nodeData!=null){
-                if(!CollectionUtils.isEmpty(nodeData.getNodeResponses())){
-                    List<NodeResponse> responses  = nodeData.getNodeResponses();
-                    String parentId=null;
-                    for (NodeResponse e : responses) {
-
-                        ActionItems  actionItems  = new ActionItems();
-                        actionItems.setTitle(e.getTitle());
-                        actionItems.setDescription(e.getDescription());
-
-                        actionItems.setNodeId(nodes.getId());
-                        actionItems.setPlanboardId(planboard.getId());
-
-                        actionItems.setParentId(parentId);
-                        actionItems.setUserId(planboard.getUserId());
-                        actionItems.setCreatedOn(Instant.now());
-                        actionItems.setModifiedOn(Instant.now());
-                        actionItems.setActive(true);
-                        actionItems = planboardApiRepository.saveOrUpdateActionItems(actionItems);
-                        parentId=actionItems.getId();
-                    }
-                }
-            }
-        }).start();
-    }
-    @Async
-    public void initializeEvents(Planboard planboard,ObjectNode schedule){
-        new Thread(()->{
-            if(schedule!=null){
-                Instant start  = convertStringToInstantUTC(schedule.get("date").asText()+" "+schedule.get("start").asText());
-                Instant end  = convertStringToInstantUTC(schedule.get("date").asText()+" "+schedule.get("end").asText());
-                List<Events> events = new ArrayList<>();
-                Set<String> ids=new HashSet<>();
-                ids.add(planboard.getUserId());
-                if(!CollectionUtils.isEmpty(planboard.getMembers())){
-                    ids.addAll(planboard.getMembers().stream().map(Members::getUserId).filter(userId -> !StringUtils.isEmpty(userId)).collect(Collectors.toSet()));
-                }
-                ids.forEach(e->{
-                    Events event  = new Events();
-                    event.setPlanboardId(planboard.getId());
-                    event.setTitle("Planboard - "+planboard.getName());
-                    event.setDescription(null);
-                    event.setUserId(e);
-                    event.setStart(start);
-                    event.setEnd(end);
-                    event.setCreatedBy(planboard.getUserId());
-                    event.setCreatedOn(Instant.now());
-                    event.setModifiedOn(Instant.now());
-                    event.setActive(true);
-                    events.add(event);
-                });
-                planboardApiRepository.saveEvents(events);
-            }
-
-        }).start();
-    }
-    @Async
-    public void inviteMembers(Planboard planboard,ObjectNode schedule){
-        new Thread(()->{
-            UserEntity owner  = planbowHibernateRepository.getUserEntity(Long.valueOf(planboard.getUserId()));
-            Instant start;
-            if(schedule!=null){
-                start=convertStringToInstantUTC(schedule.get("date").asText()+" "+schedule.get("start").asText());
-            } else {
-                start = null;
-            }
-            Set<String> ids=new HashSet<>();
-            if(!CollectionUtils.isEmpty(planboard.getMembers())){
-                ids.addAll(planboard.getMembers().stream().map(Members::getUserId).filter(userId -> !StringUtils.isEmpty(userId)).collect(Collectors.toSet()));
-            }
-            List<UserEntity> userEntities  = planbowHibernateRepository.getUserEntities(null,new ArrayList<>(ids));
-
-            if(!CollectionUtils.isEmpty(planboard.getMembers())){
-                planboard.getMembers().forEach(e->{
-                    if(!StringUtils.isEmpty(e.getUserId())){
-                        UserEntity userEntity  = PlanbowUtility.getUserEntity(userEntities,Long.valueOf(e.getUserId()));
-                        emailService.planboardInvite(planboard,owner,userEntity,null,e.getRole(),start);
-                    }else{
-                        emailService.planboardInvite(planboard,owner,null,e.getEmailId(),e.getRole(),start);
-                    }
-                });
-            }
-        }).start();
-    }
     public ResponseEntity<ResponseJsonHandler> planboardSummary(String userId, String planboardId) {
         Planboard planboard  = planboardApiRepository.getPlanboardById(planboardId);
         if(planboard==null)
@@ -499,16 +252,15 @@ public class PlanboardApiService {
                 member.put("email",e.getEmailId());
                 member.put("status",e.getStatus());
                 member.put("role",e.getRole());
+                member.set("name",objectMapper.valueToTree(null));
+                member.set("profilePic",objectMapper.valueToTree(null));
+                member.set("gender",objectMapper.valueToTree(null));
                 UserEntity userEntity  = PlanbowUtility.getUserEntity(userEntities, !StringUtils.isEmpty(e.getUserId()) ? Long.parseLong(e.getUserId()): 0);
                 if(userEntity!=null){
                     member.put("name",userEntity.getName());
                     member.put("profilePic",userEntity.getProfilePic());
                     member.put("gender",userEntity.getGender());
                     member.put("email",userEntity.getEmail());
-                }else{
-                    member.set("name",objectMapper.valueToTree(null));
-                    member.set("profilePic",objectMapper.valueToTree(null));
-                    member.set("gender",objectMapper.valueToTree(null));
                 }
                 members.add(member);
             });
@@ -553,8 +305,7 @@ public class PlanboardApiService {
     public ResponseEntity<ResponseJsonHandler> getPlanboardNodes(String planboardId,String userId) {
         ArrayNode data  = objectMapper.createArrayNode();
         List<PlanboardNodesAggregation> documents = planboardApiRepository.getPlanboardNodes(planboardId);
-
-        documents.stream().forEach(e->{
+        documents.forEach(e->{
                     Set<String> ids = e.getChildren().stream().map(PlanboardNodes::getId).collect(Collectors.toSet());
                     ObjectNode node  = objectMapper.createObjectNode();
                     node.put("id",e.getId());
@@ -579,7 +330,6 @@ public class PlanboardApiService {
             return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided planboardId does not exists");
         if(!planboard.getUserId().equals(userId))
             return ResponseJsonUtil.getResponse(HttpStatus.UNAUTHORIZED,"You are not authorized to access this planboard");
-
 
         String name  = requestJsonHandler.getStringValue("name");
         if(!StringUtils.isEmpty(name)){
@@ -697,4 +447,260 @@ public class PlanboardApiService {
         planboardApiRepository.saveOrUpdatePlanboard(planboard);
         return ResponseJsonUtil.getResponse(HttpStatus.OK,"Role successfully updated");
     }
+
+
+
+    /*******************************************************************************************************************
+     **************************  PLANBOARD ASYNC SECTION **********************************************************************
+     * /*******************************************************************************************************************/
+
+    @Async
+    public void initializeAttachments(Planboard planboard ,final MultipartFile[] files){
+        for (MultipartFile multipartFile : files) {
+            try {
+                new Thread(new FileProcessor(planboard,multipartFile,fileStorageServices,planboardApiRepository)).start();
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+    @Async
+    public void initializeStrategicNodes(Planboard planboard){
+        new Thread(()->{
+            TemporaryPlanboard temporaryPlanboard  = planboardApiRepository.getTemporaryPlanboardById(planboard.getId());
+            if(temporaryPlanboard!=null){
+                PromptResults promptResults  = planboardApiRepository.getPromptResultsById(temporaryPlanboard.getPromptId());
+                if(promptResults!=null && !CollectionUtils.isEmpty(promptResults.getStrategicNodes())){
+                    String parentId=null;
+                    for (NodeResponse e : promptResults.getStrategicNodes()) {
+                        PlanboardNodes  planboardNodes  = new PlanboardNodes();
+                        planboardNodes.setPlanboardId(planboard.getId());
+                        planboardNodes.setTitle(e.getTitle());
+                        planboardNodes.setDescription(e.getDescription());
+                        planboardNodes.setParentId(parentId);
+                        planboardNodes.setUserId(planboard.getUserId());
+                        planboardNodes.setCreatedOn(Instant.now());
+                        planboardNodes.setModifiedOn(Instant.now());
+                        planboardNodes.setActive(true);
+                        NodeMetaData nodeMetaData  = new NodeMetaData();
+                        planboardNodes.setMetaData(nodeMetaData);
+                        planboardNodes = planboardApiRepository.saveOrUpdatePlanboardNodes(planboardNodes);
+                        parentId=planboardNodes.getId();
+                        initializeActionItems(planboard,planboardNodes);
+                    }
+                }
+            }
+        }).start();
+    }
+    @Async
+    public void initializeActionItems(Planboard planboard,PlanboardNodes nodes){
+        new Thread(()->{
+            Domain domain = adminApiRepository.getDomainById(planboard.getDomainId());
+            SubDomain subDomain = adminApiRepository.getSubdomainById(planboard.getSubdomainId());
+
+            NodeData nodeData= openAiActionItems(nodes.getTitle(),domain,subDomain,planboard.getScope(),planboard.getGeography(),planboard.getUserId());
+            if(nodeData!=null){
+                if(!CollectionUtils.isEmpty(nodeData.getNodeResponses())){
+                    List<NodeResponse> responses  = nodeData.getNodeResponses();
+                    String parentId=null;
+                    for (NodeResponse e : responses) {
+
+                        ActionItems  actionItems  = new ActionItems();
+                        actionItems.setTitle(e.getTitle());
+                        actionItems.setDescription(e.getDescription());
+
+                        actionItems.setNodeId(nodes.getId());
+                        actionItems.setPlanboardId(planboard.getId());
+                        actionItems.setParentId(parentId);
+                        actionItems.setUserId(planboard.getUserId());
+
+                        actionItems.setStatus(ActionItems.STATUS_IN_PROGRESS);
+                        actionItems.setPriority(ActionItems.PRIORITY_LOW);
+
+                        actionItems.setCreatedOn(Instant.now());
+                        actionItems.setModifiedOn(Instant.now());
+                        actionItems.setActive(true);
+                        actionItems = planboardApiRepository.saveOrUpdateActionItems(actionItems);
+                        parentId=actionItems.getId();
+                    }
+                }
+            }
+        }).start();
+    }
+    @Async
+    public void initializeEvents(Planboard planboard,ObjectNode schedule){
+        new Thread(()->{
+            if(schedule!=null){
+                Instant start  = convertStringToInstantUTC(schedule.get("date").asText()+" "+schedule.get("start").asText());
+                Instant end  = convertStringToInstantUTC(schedule.get("date").asText()+" "+schedule.get("end").asText());
+                List<Events> events = new ArrayList<>();
+                Set<String> ids=new HashSet<>();
+                ids.add(planboard.getUserId());
+                if(!CollectionUtils.isEmpty(planboard.getMembers())){
+                    ids.addAll(planboard.getMembers().stream().map(Members::getUserId).filter(userId -> !StringUtils.isEmpty(userId)).collect(Collectors.toSet()));
+                }
+                ids.forEach(e->{
+                    Events event  = new Events();
+                    event.setPlanboardId(planboard.getId());
+                    event.setTitle("Planboard - "+planboard.getName());
+                    event.setDescription(null);
+                    event.setUserId(e);
+                    event.setStart(start);
+                    event.setEnd(end);
+                    event.setCreatedBy(planboard.getUserId());
+                    event.setCreatedOn(Instant.now());
+                    event.setModifiedOn(Instant.now());
+                    event.setActive(true);
+                    events.add(event);
+                });
+                planboardApiRepository.saveEvents(events);
+            }
+
+        }).start();
+    }
+    @Async
+    public void inviteMembers(Planboard planboard,ObjectNode schedule){
+        new Thread(()->{
+            UserEntity owner  = planbowHibernateRepository.getUserEntity(Long.valueOf(planboard.getUserId()));
+            Instant start;
+            if(schedule!=null){
+                start=convertStringToInstantUTC(schedule.get("date").asText()+" "+schedule.get("start").asText());
+            } else {
+                start = null;
+            }
+            Set<String> ids=new HashSet<>();
+            if(!CollectionUtils.isEmpty(planboard.getMembers())){
+                ids.addAll(planboard.getMembers().stream().map(Members::getUserId).filter(userId -> !StringUtils.isEmpty(userId)).collect(Collectors.toSet()));
+            }
+            List<UserEntity> userEntities  = planbowHibernateRepository.getUserEntities(null,new ArrayList<>(ids));
+
+            if(!CollectionUtils.isEmpty(planboard.getMembers())){
+                planboard.getMembers().forEach(e->{
+                    if(!StringUtils.isEmpty(e.getUserId())){
+                        UserEntity userEntity  = PlanbowUtility.getUserEntity(userEntities,Long.valueOf(e.getUserId()));
+                        emailService.planboardInvite(planboard,owner,userEntity,null,e.getRole(),start);
+                    }else{
+                        emailService.planboardInvite(planboard,owner,null,e.getEmailId(),e.getRole(),start);
+                    }
+                });
+            }
+        }).start();
+    }
+
+
+    /*******************************************************************************************************************
+     **************************  OPEN API SECTION **********************************************************************
+    /*******************************************************************************************************************/
+
+    private void openAiStrategicNodes(Domain domain,SubDomain subdomain,String scope,String geography,String userId,PromptResults promptResults) {
+        log.info("Executing openAiStrategicNodes() method");
+        BeanOutputParser<NodeData> outputParser = new BeanOutputParser<>(NodeData.class);
+        if(scope==null)
+            scope=" ";
+
+        if(geography==null)
+            geography=" ";
+        String query =
+                """
+                        Provide Business strategy steps for {domain} business focusing on {subdomain} focusing in {geography} market. Key departments to focus on {scope}
+                        Provide the results in array of object that contains title and description as string
+                        {format}
+                        """;
+
+        Map<String,Object> map  = new HashMap<>();
+        map.put("domain",domain.getName());
+        map.put("subdomain",subdomain.getName());
+        map.put("geography",geography);
+        map.put("scope",scope);
+        map.put("format",outputParser.getFormat());
+        PromptTemplate promptTemplate = new PromptTemplate(query,map);
+        Prompt prompt = promptTemplate.create();
+        Generation generation = chatClient.call(prompt).getResult();
+        NodeData nodeData;
+        try{
+            nodeData = outputParser.parse(generation.getOutput().getContent());
+            promptResults.setStrategicNodes(nodeData.getNodeResponses());
+            log.info("Executing of openAiStrategicNodes() method completed for promptId: {} ",promptResults.getId());
+        }catch (Exception e){
+            log.error("Exception occurred in generateNodes() method : {}",e.getMessage());
+        }
+        planboardApiRepository.saveOrUpdatePromptResults(promptResults);
+
+    }
+    private NodeData openAiActionItems(String nodeTitle,Domain domain,SubDomain subdomain,String scope,String geography,String userId) {
+        log.info("Executing openAiActionItems() method");
+        BeanOutputParser<NodeData> outputParser = new BeanOutputParser<>(NodeData.class);
+        if(scope==null)
+            scope=" ";
+
+        if(geography==null)
+            geography=" ";
+        String query =
+                """
+                        Provide Action items for {nodeTitle} in the context of {domain} business focusing on {subdomain} focusing in {geography} market. Key departments to focus on {scope}
+                        Provide the results in array of object that contains title and description as string
+                        {format}
+                        """;
+
+        Map<String,Object> map  = new HashMap<>();
+        map.put("nodeTitle",nodeTitle);
+        map.put("domain",domain.getName());
+        map.put("subdomain",subdomain.getName());
+        map.put("geography",geography);
+        map.put("scope",scope);
+        map.put("format",outputParser.getFormat());
+        PromptTemplate promptTemplate = new PromptTemplate(query,map);
+        Prompt prompt = promptTemplate.create();
+        Generation generation = chatClient.call(prompt).getResult();
+        NodeData nodeData = null;
+        try{
+            System.out.println(generation.getOutput().getContent());
+            nodeData = outputParser.parse(generation.getOutput().getContent());
+            log.info("Executing of openAiActionItems() method completed");
+        }catch (Exception e){
+            log.error("Exception occurred in openAiActionItems() method : {}",e.getMessage());
+        }
+        return nodeData;
+
+    }
+    private  PromptValidation openAiPromptValidation(String domain, String subdomain, String scope, String geography){
+        log.info("Executing openAiPromptValidation() method");
+        BeanOutputParser<PromptValidation> outputParser = new BeanOutputParser<>(PromptValidation.class);
+        if(scope==null)
+            scope=" ";
+
+        if(geography==null)
+            geography=" ";
+        String query =
+                """
+                Validate this prompt from the business point of view and respond with positive or negative if the prompt makes sense. If this comes out to be negative then provide one line reason as well -\s
+                Provide Business strategy steps for {domain} business focusing on {subdomain} focusing in {geography} market. Key departments to focus on {scope}.
+                Provide the results in object that contains status and reason as string
+                {format}
+                """;
+
+        Map<String,Object> map  = new HashMap<>();
+        map.put("domain",domain);
+        map.put("subdomain",subdomain);
+        map.put("geography",geography);
+        map.put("scope",scope);
+        map.put("format",outputParser.getFormat());
+        PromptTemplate promptTemplate = new PromptTemplate(query,map);
+        Prompt prompt = promptTemplate.create();
+        Generation generation = chatClient.call(prompt).getResult();
+        String content=generation.getOutput().getContent();
+        PromptValidation promptValidation;
+        try{
+            promptValidation = outputParser.parse(content);
+            log.info("Executing of openAiPromptValidation() method completed ");
+        }catch (Exception e){
+            log.error("Exception occurred in validatePrompt() method : {}",e.getMessage());
+            promptValidation = new PromptValidation();
+            promptValidation.setStatus("negative");
+            promptValidation.setReason("Unable to process prompt "+e.getMessage());
+        }
+        return promptValidation;
+    }
+
 }
