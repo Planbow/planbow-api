@@ -494,6 +494,9 @@ public class PlanboardApiService {
                     node.put("createdOn",PlanbowUtility.formatInstantToString(e.getCreatedOn(),null));
                     node.set("childIds",objectMapper.valueToTree(ids));
                     node.set("metaData",objectMapper.valueToTree(e.getMetaData()));
+                    node.put("actionItems",0);
+                    node.put("subTasks",0);
+                    node.put("events",0);
                     data.add(node);
                 }
         );
