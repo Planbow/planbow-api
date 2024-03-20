@@ -1,6 +1,7 @@
 package com.planbow.services;
 
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -594,17 +595,15 @@ public class PlanboardApiService {
 
     private void openAiStrategicNodes(Domain domain,SubDomain subdomain,String scope,String geography,String userId,PromptResults promptResults) {
         log.info("Executing openAiStrategicNodes() method");
-        BeanOutputParser<NodeData> outputParser = new BeanOutputParser<>(NodeData.class);
         if(scope==null)
             scope=" ";
 
         if(geography==null)
             geography=" ";
         String query =
-                """
+                    """
                         Provide Business strategy steps for {domain} business focusing on {subdomain} focusing in {geography} market. Key departments to focus on {scope}
-                        Provide the results in nodeResponses which is an array of object that contains title and description as string inside root node.
-                        {format}
+                        Provide the results in nodeResponses which is an array of object that contains title and description as string
                         """;
 
         Map<String,Object> map  = new HashMap<>();
@@ -612,16 +611,13 @@ public class PlanboardApiService {
         map.put("subdomain",subdomain.getName());
         map.put("geography",geography);
         map.put("scope",scope);
-        map.put("format",outputParser.getFormat());
         PromptTemplate promptTemplate = new PromptTemplate(query,map);
         Prompt prompt = promptTemplate.create();
         Generation generation = chatClient.call(prompt).getResult();
-        NodeData nodeData;
         String content=generation.getOutput().getContent();
         try{
-            System.out.println(content);
-            nodeData = outputParser.parse(content);
-            promptResults.setStrategicNodes(nodeData.getNodeResponses());
+            List<NodeResponse> nodeResponses = objectMapper.readValue(content, new TypeReference<>(){});
+            promptResults.setStrategicNodes(nodeResponses);
             log.info("Executing of openAiStrategicNodes() method completed for promptId: {} ",promptResults.getId());
         }catch (Exception e){
             log.error("Exception occurred in generateNodes() method : {}",e.getMessage());
@@ -631,7 +627,7 @@ public class PlanboardApiService {
     }
     private NodeData openAiActionItems(String nodeTitle,Domain domain,SubDomain subdomain,String scope,String geography,String userId) {
         log.info("Executing openAiActionItems() method");
-        BeanOutputParser<NodeData> outputParser = new BeanOutputParser<>(NodeData.class);
+
         if(scope==null)
             scope=" ";
 
@@ -640,8 +636,7 @@ public class PlanboardApiService {
         String query =
                 """
                         Provide Action items for {nodeTitle} in the context of {domain} business focusing on {subdomain} focusing in {geography} market. Key departments to focus on {scope}
-                        Provide the results in nodeResponses which is an array of object that contains title and description as string inside root node.
-                        {format}
+                        Provide the results in nodeResponses which is an array of object that contains title and description as string
                         """;
 
         Map<String,Object> map  = new HashMap<>();
@@ -650,15 +645,14 @@ public class PlanboardApiService {
         map.put("subdomain",subdomain.getName());
         map.put("geography",geography);
         map.put("scope",scope);
-        map.put("format",outputParser.getFormat());
         PromptTemplate promptTemplate = new PromptTemplate(query,map);
         Prompt prompt = promptTemplate.create();
         Generation generation = chatClient.call(prompt).getResult();
-        NodeData nodeData = null;
+        NodeData nodeData = new NodeData();
         String content=generation.getOutput().getContent();
         try{
-            System.out.println(content);
-            nodeData = outputParser.parse(content);
+            List<NodeResponse> nodeResponses = objectMapper.readValue(content, new TypeReference<>(){});
+            nodeData.setNodeResponses(nodeResponses);
             log.info("Executing of openAiActionItems() method completed");
         }catch (Exception e){
             log.error("Exception occurred in openAiActionItems() method : {}",e.getMessage());
