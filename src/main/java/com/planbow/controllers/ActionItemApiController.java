@@ -45,4 +45,28 @@ public class ActionItemApiController {
 
         return actionItemApiService.getActionItems(userId.trim(),planboardId.trim(),nodeId.trim());
     }
+
+    @PostMapping("/add-action-item")
+    public ResponseEntity<ResponseJsonHandler> addActionItem(@RequestBody RequestJsonHandler requestJsonHandler){
+        String userId  = requestJsonHandler.getStringValue("userId");
+        String nodeId  = requestJsonHandler.getStringValue("nodeId");
+        if(StringUtils.isEmpty(nodeId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide nodeId");
+        String planboardId  = requestJsonHandler.getStringValue("planboardId");
+        if(StringUtils.isEmpty(planboardId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide planboardId");
+        String title  = requestJsonHandler.getStringValue("title");
+        if(StringUtils.isEmpty(title))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide title");
+        return actionItemApiService.addActionItem(userId.trim(),planboardId.trim(),nodeId.trim(),title.trim(),requestJsonHandler);
+    }
+
+    @PostMapping("/update-action-item")
+    public ResponseEntity<ResponseJsonHandler> updateActionItem(@RequestBody RequestJsonHandler requestJsonHandler){
+        String userId  = requestJsonHandler.getStringValue("userId");
+        String actionItemId  = requestJsonHandler.getStringValue("actionItemId");
+        if(StringUtils.isEmpty(actionItemId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide actionItemId");
+        return actionItemApiService.updateActionItem(userId.trim(),actionItemId.trim(),requestJsonHandler);
+    }
 }

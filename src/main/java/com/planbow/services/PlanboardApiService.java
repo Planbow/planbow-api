@@ -554,8 +554,8 @@ public class PlanboardApiService {
         ArrayNode data  = objectMapper.createArrayNode();
         List<PlanboardNodesAggregation> documents = planboardApiRepository.getPlanboardNodes(planboardId);
 
-        documents.parallelStream().forEach(e->{
-                    Set<String> ids = e.getChildren().parallelStream().map(PlanboardNodes::getId).collect(Collectors.toSet());
+        documents.stream().forEach(e->{
+                    Set<String> ids = e.getChildren().stream().map(PlanboardNodes::getId).collect(Collectors.toSet());
                     ObjectNode node  = objectMapper.createObjectNode();
                     node.put("id",e.getId());
                     node.put("title",e.getTitle());

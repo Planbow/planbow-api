@@ -2,6 +2,7 @@ package com.planbow.repository;
 
 import com.planbow.documents.planboard.ActionItemAggregation;
 import com.planbow.documents.planboard.ActionItems;
+import com.planbow.documents.planboard.PlanboardNodes;
 import com.planbow.documents.planboard.PlanboardNodesAggregation;
 import com.planbow.util.data.support.repository.MongoDbRepository;
 import lombok.extern.log4j.Log4j2;
@@ -19,6 +20,22 @@ import java.util.List;
 @Transactional
 @Log4j2
 public class ActionItemApiRepository extends MongoDbRepository {
+
+
+    public boolean isActionItemExists(String title,String planboardId,String nodeId){
+        Query query= new Query();
+        Criteria criteria=  Criteria.where("title").regex("^"+title+"$","i");
+        criteria= criteria.and("planboardId").is(planboardId);
+        criteria= criteria.and("nodeId").is(nodeId);
+        criteria= criteria.and("active").is(true);
+        query.addCriteria(criteria);
+        return mongoTemplate.exists(query, ActionItems.class);
+    }
+
+    public ActionItems saveOrUpdateActionItems(ActionItems actionItems){
+        return (ActionItems) saveOrUpdateDocument(actionItems);
+    }
+
 
     public ActionItems getActionItems(String id){
         return (ActionItems) getDocument(ActionItems.class,id);
