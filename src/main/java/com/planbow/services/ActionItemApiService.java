@@ -132,40 +132,47 @@ public class ActionItemApiService {
 
         String title  = requestJsonHandler.getStringValue("title");
         if(!StringUtils.isEmpty(title)){
-            if(actionItemApiRepository.isActionItemExists(title, actionItems.getPlanboardId(),actionItems.getNodeId())){
-                return ResponseJsonUtil.getResponse(HttpStatus.CONFLICT,"Provided action item name already exists in this node");
-            }else{
-                actionItems.setTitle(title);
+            if(!actionItems.getTitle().equals(title)){
+                if(actionItemApiRepository.isActionItemExists(title, actionItems.getPlanboardId(),actionItems.getNodeId())){
+                    return ResponseJsonUtil.getResponse(HttpStatus.CONFLICT,"Provided action item name already exists in this node");
+                }else{
+                    actionItems.setTitle(title.trim());
+                }
             }
         }
 
         String description  = requestJsonHandler.getStringValue("description");
-
-        if(StringUtils.isEmpty(description)){
-
+        if(!StringUtils.isEmpty(description)){
+            actionItems.setDescription(description.trim());
         }
 
-        actionItems.setDescription(requestJsonHandler.getStringValue("description"));
+        String parentId  = requestJsonHandler.getStringValue("parentId");
+        if(!StringUtils.isEmpty(parentId)){
+            actionItems.setParentId(parentId.trim());
+        }
 
-        //actionItems.setPlanboardId(planboardId);
-        actionItems.setUserId(userId);
-        //actionItems.setNodeId(nodeId);
-        actionItems.setParentId(requestJsonHandler.getStringValue("parentId"));
-
-        actionItems.setStatus(ActionItems.STATUS_IN_PROGRESS);
-        actionItems.setPriority(ActionItems.PRIORITY_LOW);
+        String priority  = requestJsonHandler.getStringValue("priority");
+        if(!StringUtils.isEmpty(priority)){
+            actionItems.setPriority(priority);
+        }
 
         String endDate  = requestJsonHandler.getStringValue("endDate");
         if(!StringUtils.isEmpty(endDate)){
             actionItems.setEndDate(formatStringToInstant(endDate,null));
         }
-
-        actionItems.setActive(true);
-        actionItems.setCreatedOn(Instant.now());
         actionItems.setModifiedOn(Instant.now());
         actionItems  = actionItemApiRepository.saveOrUpdateActionItems(actionItems);
         ObjectNode data  = objectMapper.createObjectNode();
         data.put("id",actionItems.getId());
         return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
+    }
+
+    public ResponseEntity<ResponseJsonHandler> deleteActionItem(String userId, String actionItemId) {
+        ActionItems actionItems  = actionItemApiRepository.getActionItems(actionItemId);
+        if(actionItems==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided actionItemId does not exists");
+        actionItems.setActive(false);
+        actionItemApiRepository.saveOrUpdateActionItems(actionItems);
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,"Action item deleted successfully");
     }
 }

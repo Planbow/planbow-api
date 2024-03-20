@@ -1,6 +1,7 @@
 package com.planbow.controllers;
 
 
+import com.planbow.documents.planboard.ActionItems;
 import com.planbow.services.ActionItemApiService;
 import com.planbow.util.json.handler.request.RequestJsonHandler;
 import com.planbow.util.json.handler.response.ResponseJsonHandler;
@@ -67,6 +68,22 @@ public class ActionItemApiController {
         String actionItemId  = requestJsonHandler.getStringValue("actionItemId");
         if(StringUtils.isEmpty(actionItemId))
             return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide actionItemId");
+
+        String priority  = requestJsonHandler.getStringValue("priority");
+        if(!StringUtils.isEmpty(priority)){
+            if(!priority.equals(ActionItems.PRIORITY_LOW) && !priority.equals(ActionItems.PRIORITY_MEDIUM) && !priority.equals(ActionItems.PRIORITY_HIGH) && ! priority.equals(ActionItems.PRIORITY_CRITICAL))
+                return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide correct priority must be low , medium , high and critical only");
+        }
         return actionItemApiService.updateActionItem(userId.trim(),actionItemId.trim(),requestJsonHandler);
+    }
+
+
+    @PostMapping("/delete-action-item")
+    public ResponseEntity<ResponseJsonHandler> deleteActionItem(@RequestBody RequestJsonHandler requestJsonHandler){
+        String userId  = requestJsonHandler.getStringValue("userId");
+        String actionItemId  = requestJsonHandler.getStringValue("actionItemId");
+        if(StringUtils.isEmpty(actionItemId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide actionItemId");
+        return actionItemApiService.deleteActionItem(userId.trim(),actionItemId.trim());
     }
 }
