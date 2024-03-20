@@ -10,7 +10,7 @@ spring:
       api-key: ${OPENAI.API.KEY}
       chat:
         options:
-          model: gpt-4
+          model: gpt-3.5
           temperature: 0.7
 server:
   port: 80
