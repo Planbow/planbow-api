@@ -204,6 +204,42 @@ public class PlanboardApiService {
         planboardApiRepository.saveOrUpdatePromptResults(promptResults);
 
     }
+    private NodeData openAiActionItems(String nodeTitle,Domain domain,SubDomain subdomain,String scope,String geography,String userId) {
+        log.info("Executing openAiActionItems() method");
+        BeanOutputParser<NodeData> outputParser = new BeanOutputParser<>(NodeData.class);
+        if(scope==null)
+            scope=" ";
+
+        if(geography==null)
+            geography=" ";
+        String query =
+                """
+                        Provide Action items for {nodeTitle} in the context of {domain} business focusing on {subdomain} focusing in {geography} market. Key departments to focus on {scope}
+                        Provide the results in array of object that contains title and description as string
+                        {format}
+                        """;
+
+        Map<String,Object> map  = new HashMap<>();
+        map.put("nodeTitle",nodeTitle);
+        map.put("domain",domain.getName());
+        map.put("subdomain",subdomain.getName());
+        map.put("geography",geography);
+        map.put("scope",scope);
+        map.put("format",outputParser.getFormat());
+        PromptTemplate promptTemplate = new PromptTemplate(query,map);
+        Prompt prompt = promptTemplate.create();
+        Generation generation = chatClient.call(prompt).getResult();
+        NodeData nodeData = null;
+        try{
+            System.out.println(generation.getOutput().getContent());
+            nodeData = outputParser.parse(generation.getOutput().getContent());
+            log.info("Executing of openAiActionItems() method completed");
+        }catch (Exception e){
+            log.error("Exception occurred in openAiActionItems() method : {}",e.getMessage());
+        }
+        return nodeData;
+
+    }
 
 
     private  PromptValidation openAiPromptValidation(String domain, String subdomain, String scope, String geography){
@@ -332,6 +368,41 @@ public class PlanboardApiService {
                         planboardNodes.setActive(true);
                         planboardNodes = planboardApiRepository.saveOrUpdatePlanboardNodes(planboardNodes);
                         parentId=planboardNodes.getId();
+                        initializeActionItems(planboard,planboardNodes);
+                    }
+                }
+            }
+        }).start();
+    }
+
+    @Async
+    public void initializeActionItems(Planboard planboard,PlanboardNodes nodes){
+        new Thread(()->{
+            Domain domain = adminApiRepository.getDomainById(planboard.getDomainId());
+            SubDomain subDomain = adminApiRepository.getSubdomainById(planboard.getSubdomainId());
+
+            NodeData nodeData= openAiActionItems(nodes.getTitle(),domain,subDomain,planboard.getScope(),planboard.getGeography(),planboard.getUserId());
+            System.out.println(nodeData);
+            if(nodeData!=null){
+                if(!CollectionUtils.isEmpty(nodeData.getNodeResponses())){
+                    List<NodeResponse> responses  = nodeData.getNodeResponses();
+                    String parentId=null;
+                    for (NodeResponse e : responses) {
+
+                        ActionItems  actionItems  = new ActionItems();
+                        actionItems.setTitle(e.getTitle());
+                        actionItems.setDescription(e.getDescription());
+
+                        actionItems.setNodeId(nodes.getId());
+                        actionItems.setPlanboardId(planboard.getId());
+
+                        actionItems.setParentId(parentId);
+                        actionItems.setUserId(planboard.getUserId());
+                        actionItems.setCreatedOn(Instant.now());
+                        actionItems.setModifiedOn(Instant.now());
+                        actionItems.setActive(true);
+                        actionItems = planboardApiRepository.saveOrUpdateActionItems(actionItems);
+                        parentId=actionItems.getId();
                     }
                 }
             }
@@ -490,7 +561,7 @@ public class PlanboardApiService {
                     node.put("title",e.getTitle());
                     node.put("description",e.getDescription());
                     node.put("parentId",e.getParentId());
-                    node.put("parentId",e.getParentId());
+                    node.put("planboardId",e.getPlanboardId());
                     node.put("createdOn",PlanbowUtility.formatInstantToString(e.getCreatedOn(),null));
                     node.set("childIds",objectMapper.valueToTree(ids));
                     node.set("metaData",objectMapper.valueToTree(e.getMetaData()));

@@ -66,6 +66,10 @@ public class PlanboardApiRepository extends MongoDbRepository {
         return (PlanboardNodes) saveOrUpdateDocument(planboardNodes);
     }
 
+    public ActionItems  saveOrUpdateActionItems(ActionItems actionItems){
+        return (ActionItems) saveOrUpdateDocument(actionItems);
+    }
+
     public TemporaryPlanboard  getTemporaryPlanboardById(String id){
         return (TemporaryPlanboard) getDocument(TemporaryPlanboard.class,id);
     }
