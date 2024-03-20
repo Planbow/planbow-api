@@ -135,13 +135,32 @@ public class NodeApiService {
             }
         }
 
-        if(nodeMetaData!=null){
-            planboardNodes.setMetaData(nodeMetaData);
-        }
-
         if(!StringUtils.isEmpty(description)){
             planboardNodes.setDescription(description.trim());
         }
+
+        if(nodeMetaData!=null){
+          NodeMetaData metaData= planboardNodes.getMetaData();
+          if(metaData==null)
+              metaData  = new NodeMetaData();
+          if(!StringUtils.isEmpty(nodeMetaData.getColor()))
+                  metaData.setColor(nodeMetaData.getColor());
+
+          if(nodeMetaData.getWidth()>=0)
+                  metaData.setWidth(nodeMetaData.getWidth());
+
+          if(nodeMetaData.getHeight()>=0)
+                metaData.setHeight(nodeMetaData.getHeight());
+
+          if(nodeMetaData.getX_position()>=0)
+                metaData.setX_position(nodeMetaData.getX_position());
+
+          if(nodeMetaData.getY_position()>=0)
+                metaData.setY_position(nodeMetaData.getY_position());
+
+           planboardNodes.setMetaData(metaData);
+        }
+
         planboardNodes.setModifiedOn(Instant.now());
         planboardNodes.setActive(true);
         planboardNodes  = nodeApiRepository.saveOrUpdatePlanboardNodes(planboardNodes);

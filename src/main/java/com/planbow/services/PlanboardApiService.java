@@ -269,7 +269,6 @@ public class PlanboardApiService {
             data.set("members",objectMapper.valueToTree(null));
         }
 
-
         ArrayNode attachmentNode = objectMapper.createArrayNode();
         List<Attachments> attachments = planboardApiRepository.getAttachments(planboardId,Attachments.TYPE_ROOT);
         attachments.forEach(e->{
@@ -302,6 +301,7 @@ public class PlanboardApiService {
         }
         return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
     }
+
     public ResponseEntity<ResponseJsonHandler> getPlanboardNodes(String planboardId,String userId) {
         ArrayNode data  = objectMapper.createArrayNode();
         List<PlanboardNodesAggregation> documents = planboardApiRepository.getPlanboardNodes(planboardId);
@@ -362,6 +362,7 @@ public class PlanboardApiService {
             return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided planboardId does not exists");
         if(!planboard.getUserId().equals(userId))
             return ResponseJsonUtil.getResponse(HttpStatus.UNAUTHORIZED,"You are not authorized to access this planboard");
+
         if(!CollectionUtils.isEmpty(planboard.getMembers())){
             boolean anyMatch  = planboard.getMembers().stream().anyMatch(e->(!StringUtils.isEmpty(e.getEmailId()) && e.getEmailId().equals(memberId) )|| (!StringUtils.isEmpty(e.getUserId()) && e.getUserId().equals(memberId)));
             if(anyMatch)
@@ -372,9 +373,8 @@ public class PlanboardApiService {
             return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"No members found for this planboard");
         }
         planboardApiRepository.saveOrUpdatePlanboard(planboard);
-        return ResponseJsonUtil.getResponse(HttpStatus.OK,"Planboard successfully updated");
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,"Member successfully removed");
     }
-
 
     public ResponseEntity<ResponseJsonHandler> removeAttachment(String planboardId, String attachmentId, String userId) {
         Planboard planboard  = planboardApiRepository.getPlanboardById(planboardId);
@@ -385,7 +385,6 @@ public class PlanboardApiService {
         Attachments attachments  = planboardApiRepository.getAttachment(attachmentId,planboardId);
         if(attachments==null)
             return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided attachmentId does not exists");
-
         new Thread(()-> fileStorageServices.deleteFiles(List.of(attachments.getMediaUrl()))).start();
         planboardApiRepository.deleteAttachment(attachments);
         return ResponseJsonUtil.getResponse(HttpStatus.OK,"Attachment successfully deleted");
