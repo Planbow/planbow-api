@@ -618,8 +618,10 @@ public class PlanboardApiService {
         Prompt prompt = promptTemplate.create();
         Generation generation = chatClient.call(prompt).getResult();
         NodeData nodeData;
+        String content=generation.getOutput().getContent();
         try{
-            nodeData = outputParser.parse(generation.getOutput().getContent());
+            System.out.println(content);
+            nodeData = outputParser.parse(content);
             promptResults.setStrategicNodes(nodeData.getNodeResponses());
             log.info("Executing of openAiStrategicNodes() method completed for promptId: {} ",promptResults.getId());
         }catch (Exception e){
@@ -654,9 +656,10 @@ public class PlanboardApiService {
         Prompt prompt = promptTemplate.create();
         Generation generation = chatClient.call(prompt).getResult();
         NodeData nodeData = null;
+        String content=generation.getOutput().getContent();
         try{
-            System.out.println(generation.getOutput().getContent());
-            nodeData = outputParser.parse(generation.getOutput().getContent());
+            System.out.println(content);
+            nodeData = outputParser.parse(content);
             log.info("Executing of openAiActionItems() method completed");
         }catch (Exception e){
             log.error("Exception occurred in openAiActionItems() method : {}",e.getMessage());
@@ -692,6 +695,7 @@ public class PlanboardApiService {
         String content=generation.getOutput().getContent();
         PromptValidation promptValidation;
         try{
+            System.out.println(content);
             promptValidation = outputParser.parse(content);
             log.info("Executing of openAiPromptValidation() method completed ");
         }catch (Exception e){
