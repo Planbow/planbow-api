@@ -62,5 +62,14 @@ public class TaskApiController {
         return  taskApiService.updateTask(userId.trim(),taskId.trim(),requestJsonHandler);
     }
 
+    @PostMapping("/delete-task")
+    public ResponseEntity<ResponseJsonHandler> deleteTask(@RequestBody RequestJsonHandler requestJsonHandler){
+        String userId  = requestJsonHandler.getStringValue("userId");
+        String taskId  = requestJsonHandler.getStringValue("taskId");
+        if(StringUtils.isEmpty(taskId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide taskId");
+        return taskApiService.deleteTask(userId.trim(),taskId.trim());
+    }
+
 
 }

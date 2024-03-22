@@ -170,4 +170,15 @@ public class TaskApiService {
         data.put("id",tasks.getId());
         return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
     }
+
+
+    public ResponseEntity<ResponseJsonHandler> deleteTask(String userId, String taskId) {
+        Tasks tasks  = taskApiRepository.getTasks(taskId);
+        if(tasks==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided taskId does not exists");
+        tasks.setActive(false);
+        taskApiRepository.saveOrUpdateTasks(tasks);
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,"Task deleted successfully");
+    }
+
 }
