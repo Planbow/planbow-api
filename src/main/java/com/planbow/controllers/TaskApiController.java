@@ -53,4 +53,14 @@ public class TaskApiController {
     }
 
 
+    @PostMapping("/update-task")
+    public ResponseEntity<ResponseJsonHandler> updateTask(@RequestBody RequestJsonHandler requestJsonHandler){
+        String userId  = requestJsonHandler.getStringValue("userId");
+        String taskId  = requestJsonHandler.getStringValue("taskId");
+        if(StringUtils.isEmpty(taskId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide taskId");
+        return  taskApiService.updateTask(userId.trim(),taskId.trim(),requestJsonHandler);
+    }
+
+
 }

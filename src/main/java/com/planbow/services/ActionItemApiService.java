@@ -75,9 +75,12 @@ public class ActionItemApiService {
                     node.put("nodeId",e.getNodeId());
                     node.put("parentId",e.getParentId());
 
-                    node.put("endDate",PlanbowUtility.formatInstantToString(e.getEndDate(),null));
-                    node.put("createdOn",PlanbowUtility.formatInstantToString(e.getCreatedOn(),null));
+                    if(e.getEndDate()!=null)
+                        node.put("endDate",PlanbowUtility.formatInstantToString(e.getEndDate(),null));
+                    else
+                        node.set("endDate",objectMapper.valueToTree(null));
 
+                    node.put("createdOn",PlanbowUtility.formatInstantToString(e.getCreatedOn(),null));
 
                     node.put("status",e.getStatus());
                     node.put("priority",e.getPriority());

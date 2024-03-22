@@ -43,4 +43,8 @@ public class TaskApiRepository extends MongoDbRepository {
         return (Tasks) saveOrUpdateDocument(tasks);
     }
 
+    public Tasks getTasks(String id){
+        return (Tasks) getDocument(Tasks.class,id);
+    }
+
 }

@@ -110,7 +110,11 @@ public class TaskApiService {
 
             node.put("status",e.getStatus());
             node.put("priority",e.getPriority());
-            node.put("endDate",PlanbowUtility.formatInstantToString(e.getEndDate(),null));
+            if(e.getEndDate()!=null)
+                node.put("endDate",PlanbowUtility.formatInstantToString(e.getEndDate(),null));
+            else
+                node.set("endDate",objectMapper.valueToTree(null));
+
             node.put("createdOn",PlanbowUtility.formatInstantToString(e.getCreatedOn(),null));
 
             ObjectNode createdBy  = objectMapper.createObjectNode();
@@ -126,6 +130,44 @@ public class TaskApiService {
 
         });
 
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
+    }
+
+    public ResponseEntity<ResponseJsonHandler> updateTask(String userId, String taskId,RequestJsonHandler requestJsonHandler) {
+
+        Tasks tasks  = taskApiRepository.getTasks(taskId);
+        if(tasks==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided taskId does not exists");
+
+        String title  = requestJsonHandler.getStringValue("title");
+        if(!StringUtils.isEmpty(title)){
+            if(!tasks.getTitle().equals(title)){
+                if(taskApiRepository.isTaskExists(title, tasks.getPlanboardId(),tasks.getNodeId(),tasks.getActionItemId())){
+                    return ResponseJsonUtil.getResponse(HttpStatus.CONFLICT,"Provided task item name already exists in this action item");
+                }else{
+                    tasks.setTitle(title.trim());
+                }
+            }
+        }
+
+        String description  = requestJsonHandler.getStringValue("description");
+        if(!StringUtils.isEmpty(description)){
+            tasks.setDescription(description.trim());
+        }
+
+        String priority  = requestJsonHandler.getStringValue("priority");
+        if(!StringUtils.isEmpty(priority)){
+            tasks.setPriority(priority);
+        }
+
+        String endDate  = requestJsonHandler.getStringValue("endDate");
+        if(!StringUtils.isEmpty(endDate)){
+            tasks.setEndDate(formatStringToInstant(endDate,null));
+        }
+        tasks.setModifiedOn(Instant.now());
+        tasks  = taskApiRepository.saveOrUpdateTasks(tasks);
+        ObjectNode data  = objectMapper.createObjectNode();
+        data.put("id",tasks.getId());
         return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
     }
 }
