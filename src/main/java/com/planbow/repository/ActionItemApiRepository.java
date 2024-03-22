@@ -2,14 +2,13 @@ package com.planbow.repository;
 
 import com.planbow.documents.planboard.ActionItemAggregation;
 import com.planbow.documents.planboard.ActionItems;
-import com.planbow.documents.planboard.PlanboardNodes;
-import com.planbow.documents.planboard.PlanboardNodesAggregation;
 import com.planbow.util.data.support.repository.MongoDbRepository;
 import lombok.extern.log4j.Log4j2;
 import org.bson.Document;
 import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +34,9 @@ public class ActionItemApiRepository extends MongoDbRepository {
     public ActionItems saveOrUpdateActionItems(ActionItems actionItems){
         return (ActionItems) saveOrUpdateDocument(actionItems);
     }
+
+
+
 
 
     public ActionItems getActionItems(String id){
@@ -64,5 +66,27 @@ public class ActionItemApiRepository extends MongoDbRepository {
                 .as("children");
         TypedAggregation<Document> aggregation = TypedAggregation.newAggregation(Document.class,matchOperation,addFieldsOperation, graphLookupOperation);
         return mongoTemplate.aggregate(aggregation, "actionItems", ActionItemAggregation.class).getMappedResults();
+    }
+
+
+    public void updateActionItem(String id, String status){
+        Query query  = new Query();
+        Criteria criteria  = Criteria.where("active").is(true);
+         criteria  = criteria.and("id").is(id);
+        Update update = new Update();
+        update.set("status",status);
+        query.addCriteria(criteria);
+        mongoTemplate.updateFirst(query, update, ActionItems.class);
+    }
+
+    public void updateActionItemForCompletedStatus(String id, String status){
+        Query query  = new Query();
+        Criteria criteria  = Criteria.where("active").is(true);
+        criteria  = criteria.and("id").is(id);
+        criteria  = criteria.and("status").is(ActionItems.STATUS_COMPLETED);
+        Update update = new Update();
+        update.set("status",status);
+        query.addCriteria(criteria);
+        mongoTemplate.updateFirst(query, update, ActionItems.class);
     }
 }

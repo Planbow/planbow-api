@@ -10,6 +10,7 @@ import com.planbow.documents.planboard.PlanboardNodes;
 import com.planbow.entities.user.UserEntity;
 import com.planbow.repository.ActionItemApiRepository;
 import com.planbow.repository.PlanbowHibernateRepository;
+import com.planbow.repository.TaskApiRepository;
 import com.planbow.util.json.handler.request.RequestJsonHandler;
 import com.planbow.util.json.handler.response.ResponseJsonHandler;
 import com.planbow.util.json.handler.response.util.ResponseJsonUtil;
@@ -40,6 +41,13 @@ public class ActionItemApiService {
     private ActionItemApiRepository actionItemApiRepository;
     private PlanbowHibernateRepository planbowHibernateRepository;
 
+    private TaskApiRepository taskApiRepository;
+
+
+    @Autowired
+    public void setTaskApiRepository(TaskApiRepository taskApiRepository) {
+        this.taskApiRepository = taskApiRepository;
+    }
 
     @Autowired
     public void setPlanbowHibernateRepository(PlanbowHibernateRepository planbowHibernateRepository) {
@@ -186,5 +194,18 @@ public class ActionItemApiService {
         actionItems.setActive(false);
         actionItemApiRepository.saveOrUpdateActionItems(actionItems);
         return ResponseJsonUtil.getResponse(HttpStatus.OK,"Action item deleted successfully");
+    }
+
+    public ResponseEntity<ResponseJsonHandler> markAsDone(String userId, String actionItemId) {
+        ActionItems actionItems  = actionItemApiRepository.getActionItems(actionItemId);
+        if(actionItems==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided actionItemId does not exists");
+
+        long count=  taskApiRepository.getTasksByActionItemId(actionItems.getId());
+        if(count!=0){
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"You can't mark as done to this actionItem , until and unless all tasks are done");
+        }
+        actionItemApiRepository.updateActionItem(actionItems.getId(),ActionItems.STATUS_COMPLETED);
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,"Action item successfully marked as completed");
     }
 }

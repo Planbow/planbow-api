@@ -71,5 +71,14 @@ public class TaskApiController {
         return taskApiService.deleteTask(userId.trim(),taskId.trim());
     }
 
+    @PostMapping("/mark-as-done")
+    public ResponseEntity<ResponseJsonHandler> markAsDone(@RequestBody RequestJsonHandler requestJsonHandler){
+        String userId  = requestJsonHandler.getStringValue("userId");
+        String taskId  = requestJsonHandler.getStringValue("taskId");
+        if(StringUtils.isEmpty(taskId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide taskId");
+        return taskApiService.markAsDone(userId.trim(),taskId.trim());
+    }
+
 
 }

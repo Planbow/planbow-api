@@ -38,6 +38,15 @@ public class TaskApiRepository extends MongoDbRepository {
         return (List<Tasks>) getDocuments(Tasks.class,query);
     }
 
+    public long getTasksByActionItemId(String actionItemId){
+        Query query= new Query();
+        Criteria criteria=  Criteria.where("active").is(true);
+        criteria= criteria.and("actionItemId").is(actionItemId);
+        criteria= criteria.and("status").ne(Tasks.STATUS_COMPLETED);
+        query.addCriteria(criteria);
+        return mongoTemplate.count(query, Tasks.class);
+    }
+
 
     public Tasks saveOrUpdateTasks(Tasks tasks){
         return (Tasks) saveOrUpdateDocument(tasks);

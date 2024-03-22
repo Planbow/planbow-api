@@ -86,4 +86,13 @@ public class ActionItemApiController {
             return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide actionItemId");
         return actionItemApiService.deleteActionItem(userId.trim(),actionItemId.trim());
     }
+
+    @PostMapping("/mark-as-done")
+    public ResponseEntity<ResponseJsonHandler> markAsDone(@RequestBody RequestJsonHandler requestJsonHandler){
+        String userId  = requestJsonHandler.getStringValue("userId");
+        String actionItemId  = requestJsonHandler.getStringValue("actionItemId");
+        if(StringUtils.isEmpty(actionItemId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide actionItemId");
+        return actionItemApiService.markAsDone(userId.trim(),actionItemId.trim());
+    }
 }

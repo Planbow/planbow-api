@@ -4,10 +4,13 @@ package com.planbow.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.mongodb.client.result.UpdateResult;
+import com.mongodb.internal.bulk.UpdateRequest;
 import com.planbow.documents.planboard.ActionItemAggregation;
 import com.planbow.documents.planboard.ActionItems;
 import com.planbow.documents.planboard.Tasks;
 import com.planbow.entities.user.UserEntity;
+import com.planbow.repository.ActionItemApiRepository;
 import com.planbow.repository.PlanbowHibernateRepository;
 import com.planbow.repository.TaskApiRepository;
 import com.planbow.util.json.handler.request.RequestJsonHandler;
@@ -36,6 +39,13 @@ public class TaskApiService {
     private PlanbowHibernateRepository planbowHibernateRepository;
     private TaskApiRepository taskApiRepository;
 
+    private ActionItemApiRepository actionItemApiRepository;
+
+
+    @Autowired
+    public void setActionItemApiRepository(ActionItemApiRepository actionItemApiRepository) {
+        this.actionItemApiRepository = actionItemApiRepository;
+    }
 
     @Autowired
     public void setPlanbowHibernateRepository(PlanbowHibernateRepository planbowHibernateRepository) {
@@ -70,6 +80,8 @@ public class TaskApiService {
 
         tasks.setStatus(ActionItems.STATUS_IN_PROGRESS);
         tasks.setPriority(ActionItems.PRIORITY_LOW);
+
+        actionItemApiRepository.updateActionItemForCompletedStatus(tasks.getActionItemId(),ActionItems.STATUS_IN_PROGRESS);
 
         String endDate  = requestJsonHandler.getStringValue("endDate");
         if(!StringUtils.isEmpty(endDate)){
@@ -178,7 +190,24 @@ public class TaskApiService {
             return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided taskId does not exists");
         tasks.setActive(false);
         taskApiRepository.saveOrUpdateTasks(tasks);
+        long count=  taskApiRepository.getTasksByActionItemId(tasks.getActionItemId());
+        if(count==0){
+            actionItemApiRepository.updateActionItem(tasks.getActionItemId(),ActionItems.STATUS_COMPLETED);
+        }
         return ResponseJsonUtil.getResponse(HttpStatus.OK,"Task deleted successfully");
     }
 
+    public ResponseEntity<ResponseJsonHandler> markAsDone(String userId, String taskId) {
+        Tasks tasks  = taskApiRepository.getTasks(taskId);
+        if(tasks==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided taskId does not exists");
+        tasks.setStatus(Tasks.STATUS_COMPLETED);
+        tasks.setModifiedOn(Instant.now());
+        taskApiRepository.saveOrUpdateTasks(tasks);
+        long count=  taskApiRepository.getTasksByActionItemId(tasks.getActionItemId());
+        if(count==0){
+           actionItemApiRepository.updateActionItem(tasks.getActionItemId(),ActionItems.STATUS_COMPLETED);
+        }
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,"Task successfully marked as completed");
+    }
 }
