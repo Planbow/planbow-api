@@ -18,6 +18,15 @@ import java.util.List;
 public class TaskApiRepository extends MongoDbRepository {
 
 
+
+    public long getTaskCount(String actionItemId){
+        Query query= new Query();
+        Criteria criteria=  Criteria.where("active").is(true);
+        criteria= criteria.and("actionItemId").is(actionItemId);
+        query.addCriteria(criteria);
+        return mongoTemplate.count(query, Tasks.class);
+    }
+
     public boolean isTaskExists(String title,String planboardId,String nodeId,String actionItemId){
         Query query= new Query();
         Criteria criteria=  Criteria.where("title").regex("^"+title+"$","i");

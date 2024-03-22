@@ -97,6 +97,8 @@ public class ActionItemApiService {
 
                     node.set("childIds",objectMapper.valueToTree(ids));
 
+                    node.put("taskCount",taskApiRepository.getTaskCount(e.getId()));
+
                     ObjectNode createdBy  = objectMapper.createObjectNode();
                     UserEntity userEntity  = PlanbowUtility.getUserEntity(userEntities,Long.valueOf(e.getUserId()));
                     createdBy.put("id",userEntity.getId());
