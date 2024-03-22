@@ -64,7 +64,7 @@ public class ActionItemApiService {
         List<String> userIds  = actionItems.stream().map(ActionItemAggregation::getUserId).collect(Collectors.toList());
         List<UserEntity> userEntities = planbowHibernateRepository.getUserEntities(null,userIds);
         ArrayNode data  = objectMapper.createArrayNode();
-        actionItems.stream().forEach(e->{
+        actionItems.forEach(e->{
                     Set<String> ids = e.getChildren().stream().map(ActionItems::getId).collect(Collectors.toSet());
                     ObjectNode node  = objectMapper.createObjectNode();
 
@@ -74,7 +74,16 @@ public class ActionItemApiService {
                     node.put("planboardId",e.getPlanboardId());
                     node.put("nodeId",e.getNodeId());
                     node.put("parentId",e.getParentId());
+
+                    node.put("endDate",PlanbowUtility.formatInstantToString(e.getEndDate(),null));
                     node.put("createdOn",PlanbowUtility.formatInstantToString(e.getCreatedOn(),null));
+
+
+                    node.put("status",e.getStatus());
+                    node.put("priority",e.getPriority());
+                    node.set("endDate",objectMapper.valueToTree(e.getEndDate()));
+                    node.set("createdOn",objectMapper.valueToTree(e.getCreatedOn()));
+
                     node.set("childIds",objectMapper.valueToTree(ids));
 
                     ObjectNode createdBy  = objectMapper.createObjectNode();

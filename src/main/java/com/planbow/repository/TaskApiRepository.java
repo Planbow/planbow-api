@@ -1,0 +1,46 @@
+package com.planbow.repository;
+
+import com.planbow.documents.planboard.ActionItems;
+import com.planbow.documents.planboard.Tasks;
+import com.planbow.util.data.support.repository.MongoDbRepository;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+
+@Repository
+@Log4j2
+@Transactional
+public class TaskApiRepository extends MongoDbRepository {
+
+
+    public boolean isTaskExists(String title,String planboardId,String nodeId,String actionItemId){
+        Query query= new Query();
+        Criteria criteria=  Criteria.where("title").regex("^"+title+"$","i");
+        criteria= criteria.and("planboardId").is(planboardId);
+        criteria= criteria.and("nodeId").is(nodeId);
+        criteria= criteria.and("actionItemId").is(actionItemId);
+        criteria= criteria.and("active").is(true);
+        query.addCriteria(criteria);
+        return mongoTemplate.exists(query, Tasks.class);
+    }
+
+    public List<Tasks> getTasks(String actionItemId,String userId){
+        Query query= new Query();
+        Criteria criteria=  Criteria.where("active").is(true);
+        criteria= criteria.and("actionItemId").is(actionItemId);
+        criteria= criteria.and("userId").is(userId);
+        query.addCriteria(criteria);
+        return (List<Tasks>) getDocuments(Tasks.class,query);
+    }
+
+
+    public Tasks saveOrUpdateTasks(Tasks tasks){
+        return (Tasks) saveOrUpdateDocument(tasks);
+    }
+
+}
