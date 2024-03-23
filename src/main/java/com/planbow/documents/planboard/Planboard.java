@@ -31,6 +31,7 @@ public class Planboard implements BaseDocument {
     private Instant modifiedOn;
     private boolean active;
 
+    private BuildProgress buildProgress;
 
 
 }

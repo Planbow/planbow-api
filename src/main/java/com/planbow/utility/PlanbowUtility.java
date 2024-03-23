@@ -2,6 +2,7 @@ package com.planbow.utility;
 
 
 import com.planbow.documents.open.ai.PromptValidation;
+import com.planbow.documents.planboard.BuildProgress;
 import com.planbow.documents.planboard.Members;
 import com.planbow.documents.planboard.TemporaryPlanboard;
 import com.planbow.documents.prompts.PromptResults;
@@ -28,6 +29,10 @@ public class PlanbowUtility {
 
     public static final String DIRECTORY_ROOT="planbow";
     public static final String DIRECTORY_BOARDS="boards";
+
+
+
+
 
     public static PromptResults preparePromptResult(PlanboardApiRepository planboardApiRepository,String domainId, String subdomainId, String scope , String geography, String userId,PromptResults promptResults, PromptValidation promptValidation){
         if(promptResults==null)
@@ -165,4 +170,6 @@ public class PlanbowUtility {
         SimpleDateFormat outputFormat = new SimpleDateFormat("dd MMM yyyy");
         return  outputFormat.format(date);
     }
+
+
 }

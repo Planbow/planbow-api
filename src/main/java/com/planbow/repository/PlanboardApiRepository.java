@@ -15,6 +15,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -46,8 +47,22 @@ public class PlanboardApiRepository extends MongoDbRepository {
         Criteria criteria=  Criteria.where("name").regex("^"+name+"$","i");
         criteria= criteria.and("userId").is(userId);
         criteria= criteria.and("workspaceId").is(workspaceId);
+        criteria= criteria.and("active").is(true);
         query.addCriteria(criteria);
         return mongoTemplate.exists(query,Planboard.class);
+    }
+
+    public void updatePlanboardBuildProgress(String planboardId,BuildProgress buildProgress){
+        Query query= new Query();
+        Criteria criteria=  Criteria.where("planboardId").is(planboardId);
+        criteria= criteria.and("active").is(true);
+
+        Update update = new Update();
+        update.set("buildProgress.status", buildProgress.getStatus());
+        update.set("buildProgress.text", buildProgress.getText());
+
+        query.addCriteria(criteria);
+        mongoTemplate.updateFirst(query, update, Planboard.class);
     }
 
     public Planboard saveOrUpdatePlanboard(Planboard planboard){

@@ -205,6 +205,8 @@ public class TaskApiService {
                     actionItemApiRepository.updateActionItem(tasks.getActionItemId(),ActionItems.STATUS_COMPLETED);
                 }
             }
+        }else{
+            tasks.setStatus(STATUS_IN_TODO);
         }
         tasks.setModifiedOn(Instant.now());
         tasks  = taskApiRepository.saveOrUpdateTasks(tasks);

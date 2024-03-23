@@ -202,7 +202,7 @@ public class PlanboardApiService {
         planboard.setCreatedOn(Instant.now());
         planboard.setModifiedOn(Instant.now());
         planboard.setActive(true);
-
+        planboard.setBuildProgress(BuildProgress.build(BuildProgress.STATUS_BUILDING,"Building and preparing your planboard's strategic components",null));
         planboard  = planboardApiRepository.saveOrUpdatePlanboard(planboard);
         Planboard finalPlanboard = planboard;
 
@@ -449,6 +449,12 @@ public class PlanboardApiService {
     }
 
 
+    public ResponseEntity<ResponseJsonHandler> planboardBuildStatus(String planboardId) {
+        Planboard planboard  = planboardApiRepository.getPlanboardById(planboardId);
+        if(planboard==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided planboardId does not exists");
+        return null;
+    }
 
     /*******************************************************************************************************************
      **************************  PLANBOARD ASYNC SECTION **********************************************************************
@@ -490,6 +496,15 @@ public class PlanboardApiService {
                         initializeActionItems(planboard,planboardNodes);
                     }
                 }
+                else{
+                    BuildProgress buildProgress= planboard.getBuildProgress();
+                    buildProgress  = BuildProgress.build(BuildProgress.STATUS_FAILED,"Unable to set up planboard's strategic nodes",buildProgress);
+                    planboardApiRepository.updatePlanboardBuildProgress(planboard.getId(),buildProgress);
+                }
+            }else{
+               BuildProgress buildProgress= planboard.getBuildProgress();
+               buildProgress  = BuildProgress.build(BuildProgress.STATUS_FAILED,"Unable to set up planboard's strategic nodes",buildProgress);
+               planboardApiRepository.updatePlanboardBuildProgress(planboard.getId(),buildProgress);
             }
         }).start();
     }
@@ -498,7 +513,6 @@ public class PlanboardApiService {
         new Thread(()->{
             Domain domain = adminApiRepository.getDomainById(planboard.getDomainId());
             SubDomain subDomain = adminApiRepository.getSubdomainById(planboard.getSubdomainId());
-
             NodeData nodeData= openAiActionItems(nodes.getTitle(),domain,subDomain,planboard.getScope(),planboard.getGeography(),planboard.getUserId());
             if(nodeData!=null){
                 if(!CollectionUtils.isEmpty(nodeData.getNodeResponses())){
@@ -699,5 +713,6 @@ public class PlanboardApiService {
         }
         return promptValidation;
     }
+
 
 }
