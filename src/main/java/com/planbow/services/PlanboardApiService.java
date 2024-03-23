@@ -603,7 +603,7 @@ public class PlanboardApiService {
         String query =
                     """
                         Provide Business strategy steps for {domain} business focusing on {subdomain} focusing in {geography} market. Key departments to focus on {scope}
-                        Provide the results in nodeResponses which is an array of object that contains title and description as string
+                        Provide the results in array of object that contains title and description as string
                         """;
 
         Map<String,Object> map  = new HashMap<>();
@@ -636,7 +636,7 @@ public class PlanboardApiService {
         String query =
                 """
                         Provide Action items for {nodeTitle} in the context of {domain} business focusing on {subdomain} focusing in {geography} market. Key departments to focus on {scope}
-                        Provide the results in nodeResponses which is an array of object that contains title and description as string
+                        Provide the results in array of object that contains title and description as string
                         """;
 
         Map<String,Object> map  = new HashMap<>();
