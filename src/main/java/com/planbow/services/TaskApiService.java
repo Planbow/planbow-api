@@ -88,7 +88,7 @@ public class TaskApiService {
             tasks.setProgress(progress);
             if(progress==0)
                 tasks.setStatus(STATUS_IN_TODO);
-            if(progress>0 && progress<=99)
+            else if(progress>0 && progress<=99)
                 tasks.setStatus(STATUS_IN_PROGRESS);
             else
                 tasks.setStatus(STATUS_COMPLETED);
