@@ -82,6 +82,7 @@ public class TaskApiService {
         tasks.setParentId(requestJsonHandler.getStringValue("parentId"));
 
 
+        tasks.setStatus(STATUS_IN_TODO);
         Integer progress  = requestJsonHandler.getIntegerValue("progress");
         if(progress!=null){
             tasks.setProgress(progress);
@@ -92,6 +93,7 @@ public class TaskApiService {
             else
                 tasks.setStatus(STATUS_COMPLETED);
         }
+
         tasks.setPriority(ActionItems.PRIORITY_LOW);
         //actionItemApiRepository.updateActionItemForCompletedStatus(tasks.getActionItemId(), ActionItems.STATUS_IN_PROGRESS);
 
@@ -203,9 +205,7 @@ public class TaskApiService {
                     actionItemApiRepository.updateActionItem(tasks.getActionItemId(),ActionItems.STATUS_COMPLETED);
                 }
             }
-
         }
-
         tasks.setModifiedOn(Instant.now());
         tasks  = taskApiRepository.saveOrUpdateTasks(tasks);
         ObjectNode data  = objectMapper.createObjectNode();
