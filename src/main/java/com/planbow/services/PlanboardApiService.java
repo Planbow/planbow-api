@@ -453,7 +453,7 @@ public class PlanboardApiService {
         Planboard planboard  = planboardApiRepository.getPlanboardById(planboardId);
         if(planboard==null)
             return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided planboardId does not exists");
-        return null;
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,planboard.getBuildProgress());
     }
 
     /*******************************************************************************************************************

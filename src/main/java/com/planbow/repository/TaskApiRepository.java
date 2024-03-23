@@ -29,7 +29,7 @@ public class TaskApiRepository extends MongoDbRepository {
 
     public boolean isTaskExists(String title,String planboardId,String nodeId,String actionItemId){
         Query query= new Query();
-        Criteria criteria=  Criteria.where("title").regex("^"+title+"$","i");
+        Criteria criteria=  Criteria.where("title").is(title);
         criteria= criteria.and("planboardId").is(planboardId);
         criteria= criteria.and("nodeId").is(nodeId);
         criteria= criteria.and("actionItemId").is(actionItemId);
