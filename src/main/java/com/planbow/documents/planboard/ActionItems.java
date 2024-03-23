@@ -28,6 +28,7 @@ public class ActionItems implements BaseDocument {
     private Instant modifiedOn;
     private boolean active;
 
+    public static final String STATUS_IN_TODO="todo";
     public static final String STATUS_IN_PROGRESS="in progress";
     public static final String STATUS_COMPLETED="completed";
     public static final String STATUS_DELAYED="delayed";

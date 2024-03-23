@@ -21,6 +21,7 @@ public class Tasks implements BaseDocument {
     private String actionItemId;
     private String parentId;
 
+    private int progress;
     private String status;
     private String priority;
     private Instant endDate;

@@ -29,6 +29,9 @@ import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.planbow.documents.planboard.ActionItems.STATUS_IN_TODO;
+import static com.planbow.documents.planboard.Tasks.STATUS_COMPLETED;
+import static com.planbow.documents.planboard.Tasks.STATUS_IN_PROGRESS;
 import static com.planbow.utility.PlanbowUtility.formatStringToInstant;
 
 @Service
@@ -78,10 +81,19 @@ public class TaskApiService {
         tasks.setUserId(userId);
         tasks.setParentId(requestJsonHandler.getStringValue("parentId"));
 
-        tasks.setStatus(ActionItems.STATUS_IN_PROGRESS);
-        tasks.setPriority(ActionItems.PRIORITY_LOW);
 
-        actionItemApiRepository.updateActionItemForCompletedStatus(tasks.getActionItemId(),ActionItems.STATUS_IN_PROGRESS);
+        Integer progress  = requestJsonHandler.getIntegerValue("progress");
+        if(progress!=null){
+            tasks.setProgress(progress);
+            if(progress==0)
+                tasks.setStatus(STATUS_IN_TODO);
+            if(progress>0 && progress<=99)
+                tasks.setStatus(STATUS_IN_PROGRESS);
+            else
+                tasks.setStatus(STATUS_COMPLETED);
+        }
+        tasks.setPriority(ActionItems.PRIORITY_LOW);
+        //actionItemApiRepository.updateActionItemForCompletedStatus(tasks.getActionItemId(), ActionItems.STATUS_IN_PROGRESS);
 
         String endDate  = requestJsonHandler.getStringValue("endDate");
         if(!StringUtils.isEmpty(endDate)){
@@ -94,7 +106,6 @@ public class TaskApiService {
         ObjectNode data  = objectMapper.createObjectNode();
         data.put("id",tasks.getId());
         return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
-
     }
 
     public ResponseEntity<ResponseJsonHandler> getTasks(String userId, String actionItemId) {
@@ -122,6 +133,7 @@ public class TaskApiService {
 
             node.put("status",e.getStatus());
             node.put("priority",e.getPriority());
+            node.put("progress",e.getProgress());
             if(e.getEndDate()!=null)
                 node.put("endDate",PlanbowUtility.formatInstantToString(e.getEndDate(),null));
             else
@@ -176,6 +188,24 @@ public class TaskApiService {
         if(!StringUtils.isEmpty(endDate)){
             tasks.setEndDate(formatStringToInstant(endDate,null));
         }
+
+        Integer progress  = requestJsonHandler.getIntegerValue("progress");
+        if(progress!=null){
+            tasks.setProgress(progress);
+            if(progress==0)
+                tasks.setStatus(STATUS_IN_TODO);
+            if(progress>0 && progress<=99)
+                tasks.setStatus(STATUS_IN_PROGRESS);
+            else{
+                tasks.setStatus(STATUS_COMPLETED);
+                long count=  taskApiRepository.getTasksByActionItemId(tasks.getActionItemId());
+                if(count==0){
+                    actionItemApiRepository.updateActionItem(tasks.getActionItemId(),ActionItems.STATUS_COMPLETED);
+                }
+            }
+
+        }
+
         tasks.setModifiedOn(Instant.now());
         tasks  = taskApiRepository.saveOrUpdateTasks(tasks);
         ObjectNode data  = objectMapper.createObjectNode();
@@ -197,17 +227,4 @@ public class TaskApiService {
         return ResponseJsonUtil.getResponse(HttpStatus.OK,"Task deleted successfully");
     }
 
-    public ResponseEntity<ResponseJsonHandler> markAsDone(String userId, String taskId) {
-        Tasks tasks  = taskApiRepository.getTasks(taskId);
-        if(tasks==null)
-            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided taskId does not exists");
-        tasks.setStatus(Tasks.STATUS_COMPLETED);
-        tasks.setModifiedOn(Instant.now());
-        taskApiRepository.saveOrUpdateTasks(tasks);
-        long count=  taskApiRepository.getTasksByActionItemId(tasks.getActionItemId());
-        if(count==0){
-           actionItemApiRepository.updateActionItem(tasks.getActionItemId(),ActionItems.STATUS_COMPLETED);
-        }
-        return ResponseJsonUtil.getResponse(HttpStatus.OK,"Task successfully marked as completed");
-    }
 }
