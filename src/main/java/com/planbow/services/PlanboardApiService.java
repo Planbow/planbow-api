@@ -314,11 +314,12 @@ public class PlanboardApiService {
                     node.put("description",e.getDescription());
                     node.put("parentId",e.getParentId());
                     node.put("planboardId",e.getPlanboardId());
-                    node.put("createdOn",PlanbowUtility.formatInstantToString(e.getCreatedOn(),null));
+                    node.set("createdOn",objectMapper.valueToTree(e.getCreatedOn()));
                     node.set("childIds",objectMapper.valueToTree(ids));
                     node.set("metaData",objectMapper.valueToTree(e.getMetaData()));
-                    node.put("actionItems",0);
-                    node.put("subTasks",0);
+                    node.put("actionItems",planboardApiRepository.getActionItemCount(e.getPlanboardId(),e.getId()));
+                    node.put("subTasks",planboardApiRepository.getTaskCount(e.getPlanboardId(),e.getId()));
+
                     node.put("events",0);
                     data.add(node);
                 }

@@ -147,6 +147,24 @@ public class PlanboardApiRepository extends MongoDbRepository {
         return mongoTemplate.findOne(query,Attachments.class);
     }
 
+    public long getActionItemCount(String planboardId,String nodeId){
+        Query query = new Query();
+        Criteria criteria= Criteria.where("active").is(true);
+        criteria= criteria.and("planboardId").is(planboardId);
+        criteria= criteria.and("nodeId").is(nodeId);
+        query.addCriteria(criteria);
+        return mongoTemplate.count(query, ActionItems.class);
+    }
+
+    public long getTaskCount(String planboardId,String nodeId){
+        Query query = new Query();
+        Criteria criteria= Criteria.where("active").is(true);
+        criteria= criteria.and("planboardId").is(planboardId);
+        criteria= criteria.and("nodeId").is(nodeId);
+        query.addCriteria(criteria);
+        return mongoTemplate.count(query, Tasks.class);
+    }
+
     public void deleteAttachment(Attachments attachments){
         deleteDocument(attachments);
     }
