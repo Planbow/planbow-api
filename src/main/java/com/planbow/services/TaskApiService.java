@@ -204,13 +204,9 @@ public class TaskApiService {
                 tasks.setStatus(STATUS_IN_TODO);
             else if(progress>0 && progress<=99)
                 tasks.setStatus(STATUS_IN_PROGRESS);
-            else{
+            else
                 tasks.setStatus(STATUS_COMPLETED);
-                long count=  taskApiRepository.getTasksByActionItemId(tasks.getActionItemId());
-                if(count==0){
-                    actionItemApiRepository.updateActionItem(tasks.getActionItemId(),ActionItems.STATUS_COMPLETED);
-                }
-            }
+
         }else{
             tasks.setStatus(STATUS_IN_TODO);
         }
