@@ -2,9 +2,7 @@ package com.planbow.utility;
 
 
 import com.planbow.documents.open.ai.PromptValidation;
-import com.planbow.documents.planboard.BuildProgress;
-import com.planbow.documents.planboard.Members;
-import com.planbow.documents.planboard.TemporaryPlanboard;
+import com.planbow.documents.planboard.*;
 import com.planbow.documents.prompts.PromptResults;
 import com.planbow.entities.user.UserEntity;
 import com.planbow.repository.PlanboardApiRepository;
@@ -22,6 +20,10 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.planbow.documents.planboard.ActionItems.STATUS_IN_TODO;
+import static com.planbow.documents.planboard.Tasks.STATUS_COMPLETED;
+import static com.planbow.documents.planboard.Tasks.STATUS_IN_PROGRESS;
 
 @Log4j2
 public class PlanbowUtility {
@@ -171,5 +173,26 @@ public class PlanbowUtility {
         return  outputFormat.format(date);
     }
 
+
+    public static ActionItems handleActionItemStatus(List<Tasks> tasks,ActionItems actionItems){
+        if(tasks.isEmpty()){
+            actionItems.setStatus(STATUS_IN_TODO);
+        }else{
+            if(tasks.stream().allMatch(f-> f.getStatus().equals(ActionItems.STATUS_COMPLETED))){
+                actionItems.setStatus(STATUS_COMPLETED);
+            }else {
+                if (tasks.stream().anyMatch(f -> f.getStatus().equals(ActionItems.STATUS_IN_PROGRESS))) {
+                    actionItems.setStatus(STATUS_IN_PROGRESS);
+                } else {
+                    if (tasks.stream().allMatch(f -> f.getStatus().equals(STATUS_IN_TODO))) {
+                        actionItems.setStatus(STATUS_IN_TODO);
+                    } else {
+                        actionItems.setStatus(STATUS_IN_PROGRESS);
+                    }
+                }
+            }
+        }
+        return actionItems;
+    }
 
 }

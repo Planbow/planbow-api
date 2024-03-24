@@ -33,6 +33,7 @@ import static com.planbow.documents.planboard.ActionItems.STATUS_IN_TODO;
 import static com.planbow.documents.planboard.Tasks.STATUS_COMPLETED;
 import static com.planbow.documents.planboard.Tasks.STATUS_IN_PROGRESS;
 import static com.planbow.utility.PlanbowUtility.formatStringToInstant;
+import static com.planbow.utility.PlanbowUtility.handleActionItemStatus;
 
 @Service
 @Log4j2
@@ -71,6 +72,10 @@ public class TaskApiService {
             return ResponseJsonUtil.getResponse(HttpStatus.CONFLICT,"Provided task name name exists in this action item");
         }
 
+        ActionItems actionItems  = actionItemApiRepository.getActionItems(actionItemId);
+        if(actionItems==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided actionItemId does not exists");
+
         Tasks tasks  = new Tasks();
         tasks.setTitle(title);
         tasks.setDescription(requestJsonHandler.getStringValue("description"));
@@ -80,7 +85,6 @@ public class TaskApiService {
         tasks.setActionItemId(actionItemId);
         tasks.setUserId(userId);
         tasks.setParentId(requestJsonHandler.getStringValue("parentId"));
-
 
         tasks.setStatus(STATUS_IN_TODO);
         Integer progress  = requestJsonHandler.getIntegerValue("progress");
@@ -93,9 +97,7 @@ public class TaskApiService {
             else
                 tasks.setStatus(STATUS_COMPLETED);
         }
-
         tasks.setPriority(ActionItems.PRIORITY_LOW);
-        //actionItemApiRepository.updateActionItemForCompletedStatus(tasks.getActionItemId(), ActionItems.STATUS_IN_PROGRESS);
 
         String endDate  = requestJsonHandler.getStringValue("endDate");
         if(!StringUtils.isEmpty(endDate)){
@@ -105,8 +107,16 @@ public class TaskApiService {
         tasks.setCreatedOn(Instant.now());
         tasks.setModifiedOn(Instant.now());
         tasks  = taskApiRepository.saveOrUpdateTasks(tasks);
+
+        List<Tasks> tasksList = taskApiRepository.getTasks(actionItemId,userId);
+        handleActionItemStatus(tasksList, actionItems);
+        actionItemApiRepository.saveOrUpdateActionItems(actionItems);
         ObjectNode data  = objectMapper.createObjectNode();
         data.put("id",tasks.getId());
+        ObjectNode actionItem  = objectMapper.createObjectNode();
+        actionItem.put("id",actionItems.getId());
+        actionItem.put("status",actionItems.getStatus());
+        data.set("actionItem",actionItem);
         return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
     }
 
@@ -136,12 +146,8 @@ public class TaskApiService {
             node.put("status",e.getStatus());
             node.put("priority",e.getPriority());
             node.put("progress",e.getProgress());
-            if(e.getEndDate()!=null)
-                node.put("endDate",PlanbowUtility.formatInstantToString(e.getEndDate(),null));
-            else
-                node.set("endDate",objectMapper.valueToTree(null));
-
-            node.put("createdOn",PlanbowUtility.formatInstantToString(e.getCreatedOn(),null));
+            node.set("endDate",objectMapper.valueToTree(e.getEndDate()));
+            node.set("createdOn",objectMapper.valueToTree(e.getCreatedOn()));
 
             ObjectNode createdBy  = objectMapper.createObjectNode();
             UserEntity userEntity  = PlanbowUtility.getUserEntity(userEntities,Long.valueOf(e.getUserId()));
@@ -210,8 +216,18 @@ public class TaskApiService {
         }
         tasks.setModifiedOn(Instant.now());
         tasks  = taskApiRepository.saveOrUpdateTasks(tasks);
+
+        List<Tasks> tasksList = taskApiRepository.getTasks(tasks.getActionItemId(),userId);
+        ActionItems actionItems  = actionItemApiRepository.getActionItems(tasks.getActionItemId());
+        handleActionItemStatus(tasksList, actionItems);
+        actionItemApiRepository.saveOrUpdateActionItems(actionItems);
+
         ObjectNode data  = objectMapper.createObjectNode();
         data.put("id",tasks.getId());
+        ObjectNode actionItem  = objectMapper.createObjectNode();
+        actionItem.put("id",actionItems.getId());
+        actionItem.put("status",actionItems.getStatus());
+        data.set("actionItem",actionItem);
         return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
     }
 
@@ -222,11 +238,19 @@ public class TaskApiService {
             return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided taskId does not exists");
         tasks.setActive(false);
         taskApiRepository.saveOrUpdateTasks(tasks);
-        long count=  taskApiRepository.getTasksByActionItemId(tasks.getActionItemId());
-        if(count==0){
-            actionItemApiRepository.updateActionItem(tasks.getActionItemId(),ActionItems.STATUS_COMPLETED);
-        }
-        return ResponseJsonUtil.getResponse(HttpStatus.OK,"Task deleted successfully");
+        List<Tasks> tasksList = taskApiRepository.getTasks(tasks.getActionItemId(),userId);
+        ActionItems actionItems  = actionItemApiRepository.getActionItems(tasks.getActionItemId());
+        handleActionItemStatus(tasksList, actionItems);
+        actionItemApiRepository.saveOrUpdateActionItems(actionItems);
+
+        ObjectNode data = objectMapper.createObjectNode();
+        ObjectNode actionItem  = objectMapper.createObjectNode();
+        actionItem.put("id",actionItems.getId());
+        actionItem.put("status",actionItems.getStatus());
+        data.set("actionItem",actionItem);
+        data.put("id",tasks.getId());
+        data.put("message","Task deleted successfully");
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
     }
 
 }

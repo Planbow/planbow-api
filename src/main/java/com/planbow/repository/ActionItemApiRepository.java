@@ -36,6 +36,16 @@ public class ActionItemApiRepository extends MongoDbRepository {
     }
 
 
+    public void updateActionItemStatus(String actionItemId,String status){
+        Query query  = new Query();
+        Criteria criteria  = Criteria.where("active").is(true);
+        criteria  = criteria.and("id").is(actionItemId);
+        Update update = new Update();
+        update.set("status",status);
+        query.addCriteria(criteria);
+        mongoTemplate.updateFirst(query, update, ActionItems.class);
+    }
+
 
 
 

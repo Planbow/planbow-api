@@ -529,7 +529,7 @@ public class PlanboardApiService {
                         actionItems.setParentId(parentId);
                         actionItems.setUserId(planboard.getUserId());
 
-                        actionItems.setStatus(ActionItems.STATUS_IN_PROGRESS);
+                        actionItems.setStatus(ActionItems.STATUS_IN_TODO);
                         actionItems.setPriority(ActionItems.PRIORITY_LOW);
 
                         actionItems.setCreatedOn(Instant.now());
