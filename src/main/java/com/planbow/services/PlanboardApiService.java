@@ -231,8 +231,8 @@ public class PlanboardApiService {
         data.put("name",planboard.getName());
         data.put("description",planboard.getDescription());
         data.put("nodeInitialization",planboard.isNodeInitialization());
-        data.put("endDate", PlanbowUtility.formatInstantToString(planboard.getEndDate(),null));
-        data.put("createdOn", PlanbowUtility.formatInstantToString(planboard.getCreatedOn(),null));
+        data.set("endDate",objectMapper.valueToTree(planboard.getEndDate()));
+        data.set("createdOn",objectMapper.valueToTree(planboard.getCreatedOn()));
 
         ObjectNode businessArea  = objectMapper.createObjectNode();
         Domain domain = adminApiRepository.getDomainById(planboard.getDomainId());
