@@ -54,7 +54,7 @@ public class PlanboardApiRepository extends MongoDbRepository {
 
     public void updatePlanboardBuildProgress(String planboardId,BuildProgress buildProgress){
         Query query= new Query();
-        Criteria criteria=  Criteria.where("planboardId").is(planboardId);
+        Criteria criteria=  Criteria.where("id").is(planboardId);
         criteria= criteria.and("active").is(true);
 
         Update update = new Update();

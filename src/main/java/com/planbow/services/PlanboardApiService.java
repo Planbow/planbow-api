@@ -494,17 +494,25 @@ public class PlanboardApiService {
                         planboardNodes.setMetaData(nodeMetaData);
                         planboardNodes = planboardApiRepository.saveOrUpdatePlanboardNodes(planboardNodes);
                         parentId=planboardNodes.getId();
+
+                        BuildProgress buildProgress= planboard.getBuildProgress();
+                        buildProgress  = BuildProgress.build(BuildProgress.STATUS_COMPLETED,"Initializing action items for component '"+e.getTitle()+"'",buildProgress);
+                        planboardApiRepository.updatePlanboardBuildProgress(planboard.getId(),buildProgress);
+
                         initializeActionItems(planboard,planboardNodes);
                     }
+                    BuildProgress buildProgress= planboard.getBuildProgress();
+                    buildProgress  = BuildProgress.build(BuildProgress.STATUS_COMPLETED,"All planboard's strategic components and action items are ready to user",buildProgress);
+                    planboardApiRepository.updatePlanboardBuildProgress(planboard.getId(),buildProgress);
                 }
                 else{
                     BuildProgress buildProgress= planboard.getBuildProgress();
-                    buildProgress  = BuildProgress.build(BuildProgress.STATUS_FAILED,"Unable to set up planboard's strategic nodes",buildProgress);
+                    buildProgress  = BuildProgress.build(BuildProgress.STATUS_FAILED,"Unable to set up planboard's strategic nodes\n Please try again",buildProgress);
                     planboardApiRepository.updatePlanboardBuildProgress(planboard.getId(),buildProgress);
                 }
             }else{
                BuildProgress buildProgress= planboard.getBuildProgress();
-               buildProgress  = BuildProgress.build(BuildProgress.STATUS_FAILED,"Unable to set up planboard's strategic nodes",buildProgress);
+               buildProgress  = BuildProgress.build(BuildProgress.STATUS_FAILED,"Unable to set up planboard's strategic nodes\n Please try again",buildProgress);
                planboardApiRepository.updatePlanboardBuildProgress(planboard.getId(),buildProgress);
             }
         }).start();
@@ -540,6 +548,11 @@ public class PlanboardApiService {
                         parentId=actionItems.getId();
                     }
                 }
+            }
+            else{
+                BuildProgress buildProgress= planboard.getBuildProgress();
+                buildProgress  = BuildProgress.build(BuildProgress.STATUS_FAILED,"Unable to set up planboard's strategic nodes\n Please try again",buildProgress);
+                planboardApiRepository.updatePlanboardBuildProgress(planboard.getId(),buildProgress);
             }
         }).start();
     }
