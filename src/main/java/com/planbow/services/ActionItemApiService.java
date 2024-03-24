@@ -82,13 +82,8 @@ public class ActionItemApiService {
                     node.put("planboardId",e.getPlanboardId());
                     node.put("nodeId",e.getNodeId());
                     node.put("parentId",e.getParentId());
-
-                    if(e.getEndDate()!=null)
-                        node.put("endDate",PlanbowUtility.formatInstantToString(e.getEndDate(),null));
-                    else
-                        node.set("endDate",objectMapper.valueToTree(null));
-
-                    node.put("createdOn",PlanbowUtility.formatInstantToString(e.getCreatedOn(),null));
+                    node.set("endDate",objectMapper.valueToTree(e.getEndDate()));
+                    node.set("createdOn",objectMapper.valueToTree(e.getCreatedOn()));
 
                     node.put("status",e.getStatus());
                     node.put("priority",e.getPriority());
@@ -196,18 +191,5 @@ public class ActionItemApiService {
         actionItems.setActive(false);
         actionItemApiRepository.saveOrUpdateActionItems(actionItems);
         return ResponseJsonUtil.getResponse(HttpStatus.OK,"Action item deleted successfully");
-    }
-
-    public ResponseEntity<ResponseJsonHandler> markAsDone(String userId, String actionItemId) {
-        ActionItems actionItems  = actionItemApiRepository.getActionItems(actionItemId);
-        if(actionItems==null)
-            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided actionItemId does not exists");
-
-        long count=  taskApiRepository.getTasksByActionItemId(actionItems.getId());
-        if(count!=0){
-            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"You can't mark as done to this actionItem , until and unless all tasks are done");
-        }
-        actionItemApiRepository.updateActionItem(actionItems.getId(),ActionItems.STATUS_COMPLETED);
-        return ResponseJsonUtil.getResponse(HttpStatus.OK,"Action item successfully marked as completed");
     }
 }
