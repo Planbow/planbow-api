@@ -150,11 +150,11 @@ public class TaskApiService {
             if(e.getEndDate()!=null){
                 if(isDatePassed(e.getEndDate())){
                     node.put("status", Tasks.STATUS_DELAYED);
+                    new Thread(()-> taskApiRepository.updateTaskStatus(e.getId(),Tasks.STATUS_DELAYED));
                 }
             }
 
             node.set("createdOn",objectMapper.valueToTree(e.getCreatedOn()));
-
             ObjectNode createdBy  = objectMapper.createObjectNode();
             UserEntity userEntity  = PlanbowUtility.getUserEntity(userEntities,Long.valueOf(e.getUserId()));
             createdBy.put("id",userEntity.getId());

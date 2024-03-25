@@ -6,6 +6,7 @@ import com.planbow.util.data.support.repository.MongoDbRepository;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,6 +55,16 @@ public class TaskApiRepository extends MongoDbRepository {
         criteria= criteria.and("status").ne(Tasks.STATUS_COMPLETED);
         query.addCriteria(criteria);
         return mongoTemplate.count(query, Tasks.class);
+    }
+
+    public void updateTaskStatus(String taskId,String status){
+        Query query= new Query();
+        Criteria criteria=  Criteria.where("active").is(true);
+        criteria= criteria.and("id").is(taskId);
+        query.addCriteria(criteria);
+        Update update  = new Update();
+        update.set("status",status);
+        mongoTemplate.updateFirst(query, update, Tasks.class);
     }
 
 
