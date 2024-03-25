@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.config.Task;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -32,8 +33,7 @@ import java.util.stream.Collectors;
 import static com.planbow.documents.planboard.ActionItems.STATUS_IN_TODO;
 import static com.planbow.documents.planboard.Tasks.STATUS_COMPLETED;
 import static com.planbow.documents.planboard.Tasks.STATUS_IN_PROGRESS;
-import static com.planbow.utility.PlanbowUtility.formatStringToInstant;
-import static com.planbow.utility.PlanbowUtility.handleActionItemStatus;
+import static com.planbow.utility.PlanbowUtility.*;
 
 @Service
 @Log4j2
@@ -147,6 +147,12 @@ public class TaskApiService {
             node.put("priority",e.getPriority());
             node.put("progress",e.getProgress());
             node.set("endDate",objectMapper.valueToTree(e.getEndDate()));
+            if(e.getEndDate()!=null){
+                if(isDatePassed(e.getEndDate())){
+                    node.put("status", Tasks.STATUS_DELAYED);
+                }
+            }
+
             node.set("createdOn",objectMapper.valueToTree(e.getCreatedOn()));
 
             ObjectNode createdBy  = objectMapper.createObjectNode();

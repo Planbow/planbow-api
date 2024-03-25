@@ -195,4 +195,15 @@ public class PlanbowUtility {
         return actionItems;
     }
 
+
+    public static boolean isDatePassed(Instant endDate){
+        Duration durationToAdd = Duration.ofHours(23)
+                .plusMinutes(59)
+                .plusSeconds(59)
+                .plusMillis(999);
+        endDate=endDate.plus(durationToAdd);
+        Instant now  = Instant.now();
+        return now.isAfter(endDate);
+    }
+
 }
