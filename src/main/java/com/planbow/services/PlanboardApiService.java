@@ -498,7 +498,6 @@ public class PlanboardApiService {
                         BuildProgress buildProgress= planboard.getBuildProgress();
                         buildProgress  = BuildProgress.build(BuildProgress.STATUS_BUILDING,"Initializing action items for component '"+e.getTitle()+"'",buildProgress);
                         planboardApiRepository.updatePlanboardBuildProgress(planboard.getId(),buildProgress);
-
                         initializeActionItems(planboard,planboardNodes);
                     }
                     BuildProgress buildProgress= planboard.getBuildProgress();
@@ -531,44 +530,42 @@ public class PlanboardApiService {
             }
         }).start();
     }
-    @Async
+
     public void initializeActionItems(Planboard planboard,PlanboardNodes nodes){
-        new Thread(()->{
-            Domain domain = adminApiRepository.getDomainById(planboard.getDomainId());
-            SubDomain subDomain = adminApiRepository.getSubdomainById(planboard.getSubdomainId());
-            NodeData nodeData= openAiActionItems(nodes.getTitle(),domain,subDomain,planboard.getScope(),planboard.getGeography(),planboard.getUserId());
-            if(nodeData!=null){
-                if(!CollectionUtils.isEmpty(nodeData.getNodeResponses())){
-                    List<NodeResponse> responses  = nodeData.getNodeResponses();
-                    String parentId=null;
-                    for (NodeResponse e : responses) {
+        Domain domain = adminApiRepository.getDomainById(planboard.getDomainId());
+        SubDomain subDomain = adminApiRepository.getSubdomainById(planboard.getSubdomainId());
+        NodeData nodeData= openAiActionItems(nodes.getTitle(),domain,subDomain,planboard.getScope(),planboard.getGeography(),planboard.getUserId());
+        if(nodeData!=null){
+            if(!CollectionUtils.isEmpty(nodeData.getNodeResponses())){
+                List<NodeResponse> responses  = nodeData.getNodeResponses();
+                String parentId=null;
+                for (NodeResponse e : responses) {
 
-                        ActionItems  actionItems  = new ActionItems();
-                        actionItems.setTitle(e.getTitle());
-                        actionItems.setDescription(e.getDescription());
+                    ActionItems  actionItems  = new ActionItems();
+                    actionItems.setTitle(e.getTitle());
+                    actionItems.setDescription(e.getDescription());
 
-                        actionItems.setNodeId(nodes.getId());
-                        actionItems.setPlanboardId(planboard.getId());
-                        actionItems.setParentId(parentId);
-                        actionItems.setUserId(planboard.getUserId());
+                    actionItems.setNodeId(nodes.getId());
+                    actionItems.setPlanboardId(planboard.getId());
+                    actionItems.setParentId(parentId);
+                    actionItems.setUserId(planboard.getUserId());
 
-                        actionItems.setStatus(ActionItems.STATUS_IN_TODO);
-                        actionItems.setPriority(ActionItems.PRIORITY_LOW);
+                    actionItems.setStatus(ActionItems.STATUS_IN_TODO);
+                    actionItems.setPriority(ActionItems.PRIORITY_LOW);
 
-                        actionItems.setCreatedOn(Instant.now());
-                        actionItems.setModifiedOn(Instant.now());
-                        actionItems.setActive(true);
-                        actionItems = planboardApiRepository.saveOrUpdateActionItems(actionItems);
-                        parentId=actionItems.getId();
-                    }
+                    actionItems.setCreatedOn(Instant.now());
+                    actionItems.setModifiedOn(Instant.now());
+                    actionItems.setActive(true);
+                    actionItems = planboardApiRepository.saveOrUpdateActionItems(actionItems);
+                    parentId=actionItems.getId();
                 }
             }
-            else{
-                BuildProgress buildProgress= planboard.getBuildProgress();
-                buildProgress  = BuildProgress.build(BuildProgress.STATUS_FAILED,"Unable to set up planboard's strategic nodes\n Please try again",buildProgress);
-                planboardApiRepository.updatePlanboardBuildProgress(planboard.getId(),buildProgress);
-            }
-        }).start();
+        }
+        else{
+            BuildProgress buildProgress= planboard.getBuildProgress();
+            buildProgress  = BuildProgress.build(BuildProgress.STATUS_FAILED,"Unable to set up planboard's strategic nodes\n Please try again",buildProgress);
+            planboardApiRepository.updatePlanboardBuildProgress(planboard.getId(),buildProgress);
+        }
     }
     @Async
     public void initializeEvents(Planboard planboard,ObjectNode schedule){
