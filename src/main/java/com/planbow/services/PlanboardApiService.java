@@ -496,7 +496,7 @@ public class PlanboardApiService {
                         parentId=planboardNodes.getId();
 
                         BuildProgress buildProgress= planboard.getBuildProgress();
-                        buildProgress  = BuildProgress.build(BuildProgress.STATUS_COMPLETED,"Initializing action items for component '"+e.getTitle()+"'",buildProgress);
+                        buildProgress  = BuildProgress.build(BuildProgress.STATUS_BUILDING,"Initializing action items for component '"+e.getTitle()+"'",buildProgress);
                         planboardApiRepository.updatePlanboardBuildProgress(planboard.getId(),buildProgress);
 
                         initializeActionItems(planboard,planboardNodes);
@@ -506,11 +506,25 @@ public class PlanboardApiService {
                     planboardApiRepository.updatePlanboardBuildProgress(planboard.getId(),buildProgress);
                 }
                 else{
+                    try {
+                        Thread.sleep(2000);
+                        initializeStrategicNodes(planboard);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
                     BuildProgress buildProgress= planboard.getBuildProgress();
                     buildProgress  = BuildProgress.build(BuildProgress.STATUS_FAILED,"Unable to set up planboard's strategic nodes\n Please try again",buildProgress);
                     planboardApiRepository.updatePlanboardBuildProgress(planboard.getId(),buildProgress);
                 }
             }else{
+
+                try {
+                    Thread.sleep(2000);
+                    initializeStrategicNodes(planboard);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+
                BuildProgress buildProgress= planboard.getBuildProgress();
                buildProgress  = BuildProgress.build(BuildProgress.STATUS_FAILED,"Unable to set up planboard's strategic nodes\n Please try again",buildProgress);
                planboardApiRepository.updatePlanboardBuildProgress(planboard.getId(),buildProgress);
