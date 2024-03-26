@@ -258,4 +258,13 @@ public class PlanboardApiController {
         return  planboardApiService.planboardBuildStatus(planboardId.trim());
     }
 
+    @PostMapping("/get-members")
+    public ResponseEntity<ResponseJsonHandler> getMembers(@RequestBody RequestJsonHandler requestJsonHandler){
+        String userId  = requestJsonHandler.getStringValue("userId");
+        String planboardId  = requestJsonHandler.getStringValue("planboardId");
+        if(StringUtils.isEmpty(planboardId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide planboardId");
+        return  planboardApiService.getMembers(userId.trim(),planboardId.trim());
+    }
+
 }

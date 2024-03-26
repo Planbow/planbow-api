@@ -457,6 +457,35 @@ public class PlanboardApiService {
         return ResponseJsonUtil.getResponse(HttpStatus.OK,planboard.getBuildProgress());
     }
 
+    public ResponseEntity<ResponseJsonHandler> getMembers(String userId, String planboardId) {
+        Planboard  planboard  =  planboardApiRepository.getPlanboardById(planboardId);
+        if(planboard==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided planboardId does not exists");
+        List<Members> members  = planboard.getMembers();
+        if(CollectionUtils.isEmpty(members))
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"No members invited in this planboard");
+
+        List<Members>  filter  = planboard.getMembers().stream().filter(e->(!StringUtils.isEmpty(e.getUserId()) && e.getStatus().equals(Members.STATUS_ACCEPTED))).collect(Collectors.toList());
+        if(CollectionUtils.isEmpty(filter))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"No members accepted the invitation yet");
+        Set<String> userIds  = filter.stream().map(Members::getUserId).collect(Collectors.toSet());
+        userIds.add(planboard.getUserId());
+        List<UserEntity> userEntities  = planbowHibernateRepository.getUserEntities(null,new ArrayList<>(userIds));
+        ArrayNode data = objectMapper.createArrayNode();
+        userEntities.forEach(e->{
+            ObjectNode member  = objectMapper.createObjectNode();
+            member.put("userId",e.getId());
+            member.put("email",e.getEmail());
+            member.put("name",e.getName());
+            member.put("profilePic",e.getProfilePic());
+            member.put("gender",e.getGender());
+            data.add(member);
+        });
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
+    }
+
+
+
     /*******************************************************************************************************************
      **************************  PLANBOARD ASYNC SECTION **********************************************************************
      * /*******************************************************************************************************************/
@@ -738,6 +767,7 @@ public class PlanboardApiService {
         }
         return promptValidation;
     }
+
 
 
 }
