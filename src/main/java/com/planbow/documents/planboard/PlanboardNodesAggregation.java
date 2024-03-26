@@ -15,6 +15,8 @@ public class PlanboardNodesAggregation {
     private String parentId;
 
     private String userId;
+    private String assignedTo;
+    private Instant endDate;
     private Instant createdOn;
     private Instant modifiedOn;
     private boolean active;

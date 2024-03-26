@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+import static com.planbow.utility.PlanbowUtility.isInteger;
+
 @RestController
 @RequestMapping("/nodes")
 public class NodeApiController {
@@ -55,7 +57,12 @@ public class NodeApiController {
         String parentId  = requestJsonHandler.getStringValue("parentId");
         String description  = requestJsonHandler.getStringValue("description");
         NodeMetaData nodeMetaData  = (NodeMetaData) requestJsonHandler.getObjectValue("metaData", NodeMetaData.class);
-        return nodeApiService.addNode(userId.trim(),planboardId.trim(),parentId,title.trim(),description,nodeMetaData);
+        String assignedTo  = requestJsonHandler.getStringValue("assignedTo");
+        if(!org.apache.commons.lang3.StringUtils.isEmpty(assignedTo)){
+            if(!isInteger(assignedTo))
+                return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Provided assignedTo must be in number");
+        }
+        return nodeApiService.addNode(userId.trim(),planboardId.trim(),parentId,title.trim(),description,nodeMetaData,requestJsonHandler);
     }
 
     @PostMapping("/update-node")
@@ -73,7 +80,13 @@ public class NodeApiController {
         String title  = requestJsonHandler.getStringValue("title");
         String description  = requestJsonHandler.getStringValue("description");
         NodeMetaData nodeMetaData  = (NodeMetaData) requestJsonHandler.getObjectValue("metaData", NodeMetaData.class);
-        return nodeApiService.updateNode(userId.trim(),nodeId.trim(),planboardId.trim(),title,description,nodeMetaData);
+
+        String assignedTo  = requestJsonHandler.getStringValue("assignedTo");
+        if(!org.apache.commons.lang3.StringUtils.isEmpty(assignedTo)){
+            if(!isInteger(assignedTo))
+                return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Provided assignedTo must be in number");
+        }
+        return nodeApiService.updateNode(userId.trim(),nodeId.trim(),planboardId.trim(),title,description,nodeMetaData,requestJsonHandler);
     }
 
 

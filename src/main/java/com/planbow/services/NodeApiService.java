@@ -8,6 +8,7 @@ import com.planbow.documents.planboard.Planboard;
 import com.planbow.documents.planboard.PlanboardNodes;
 import com.planbow.repository.NodeApiRepository;
 import com.planbow.repository.PlanboardApiRepository;
+import com.planbow.util.json.handler.request.RequestJsonHandler;
 import com.planbow.util.json.handler.response.ResponseJsonHandler;
 import com.planbow.util.json.handler.response.util.ResponseJsonUtil;
 import lombok.extern.log4j.Log4j2;
@@ -20,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+
+import static com.planbow.utility.PlanbowUtility.formatStringToInstant;
 
 @Service
 @Transactional
@@ -71,7 +74,7 @@ public class NodeApiService {
 
 
 
-    public ResponseEntity<ResponseJsonHandler> addNode(String userId, String planboardId, String parentId, String title, String description, NodeMetaData nodeMetaData) {
+    public ResponseEntity<ResponseJsonHandler> addNode(String userId, String planboardId, String parentId, String title, String description, NodeMetaData nodeMetaData, RequestJsonHandler requestJsonHandler) {
         Planboard planboard  = planboardApiRepository.getPlanboardById(planboardId);
         if(planboard==null)
             return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided planboardId does not exists");
@@ -102,6 +105,18 @@ public class NodeApiService {
             nodeMetaData  = new NodeMetaData();
         }
 
+        String assignedTo  = requestJsonHandler.getStringValue("assignedTo");
+        if(!StringUtils.isEmpty(assignedTo)){
+            planboardNodes.setAssignedTo(assignedTo);
+        }
+
+        String endDate  = requestJsonHandler.getStringValue("endDate");
+        if(!StringUtils.isEmpty(endDate)){
+            planboardNodes.setEndDate(formatStringToInstant(endDate,null));
+        }
+
+
+
         planboardNodes.setMetaData(nodeMetaData);
         planboardNodes.setCreatedOn(Instant.now());
         planboardNodes.setModifiedOn(Instant.now());
@@ -113,7 +128,7 @@ public class NodeApiService {
     }
 
 
-    public ResponseEntity<ResponseJsonHandler> updateNode(String userId,String nodeId, String planboardId, String title, String description, NodeMetaData nodeMetaData) {
+    public ResponseEntity<ResponseJsonHandler> updateNode(String userId,String nodeId, String planboardId, String title, String description, NodeMetaData nodeMetaData,RequestJsonHandler requestJsonHandler) {
         Planboard planboard  = planboardApiRepository.getPlanboardById(planboardId);
         if(planboard==null)
             return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided planboardId does not exists");
@@ -159,6 +174,16 @@ public class NodeApiService {
                 metaData.setY_position(nodeMetaData.getY_position());
 
            planboardNodes.setMetaData(metaData);
+        }
+
+        String assignedTo  = requestJsonHandler.getStringValue("assignedTo");
+        if(!StringUtils.isEmpty(assignedTo)){
+            planboardNodes.setAssignedTo(assignedTo);
+        }
+
+        String endDate  = requestJsonHandler.getStringValue("endDate");
+        if(!StringUtils.isEmpty(endDate)){
+            planboardNodes.setEndDate(formatStringToInstant(endDate,null));
         }
 
         planboardNodes.setModifiedOn(Instant.now());

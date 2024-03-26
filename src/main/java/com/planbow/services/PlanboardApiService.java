@@ -306,6 +306,13 @@ public class PlanboardApiService {
     public ResponseEntity<ResponseJsonHandler> getPlanboardNodes(String planboardId,String userId) {
         ArrayNode data  = objectMapper.createArrayNode();
         List<PlanboardNodesAggregation> documents = planboardApiRepository.getPlanboardNodes(planboardId);
+
+
+        Set<String> assignedTos=documents.stream().map(PlanboardNodesAggregation::getAssignedTo).filter(assignedTo ->!StringUtils.isEmpty(assignedTo)).collect(Collectors.toSet());
+        Set<String> userIds  = documents.stream().map(PlanboardNodesAggregation::getUserId).collect(Collectors.toSet());
+        assignedTos.addAll(userIds);
+        List<UserEntity> userEntities = planbowHibernateRepository.getUserEntities(null,new ArrayList<>(assignedTos));
+
         documents.forEach(e->{
                     Set<String> ids = e.getChildren().stream().map(PlanboardNodes::getId).collect(Collectors.toSet());
                     ObjectNode node  = objectMapper.createObjectNode();
@@ -315,12 +322,38 @@ public class PlanboardApiService {
                     node.put("parentId",e.getParentId());
                     node.put("planboardId",e.getPlanboardId());
                     node.set("createdOn",objectMapper.valueToTree(e.getCreatedOn()));
+                    node.set("endDate",objectMapper.valueToTree(e.getEndDate()));
                     node.set("childIds",objectMapper.valueToTree(ids));
                     node.set("metaData",objectMapper.valueToTree(e.getMetaData()));
+
                     node.put("actionItems",planboardApiRepository.getActionItemCount(e.getPlanboardId(),e.getId()));
                     node.put("subTasks",planboardApiRepository.getTaskCount(e.getPlanboardId(),e.getId()));
-
                     node.put("events",0);
+
+
+
+                    ObjectNode createdBy  = objectMapper.createObjectNode();
+                    UserEntity userEntity  = PlanbowUtility.getUserEntity(userEntities,Long.valueOf(e.getUserId()));
+                    createdBy.put("id",userEntity.getId());
+                    createdBy.put("name",userEntity.getName());
+                    createdBy.put("email",userEntity.getEmail());
+                    createdBy.put("profilePic",userEntity.getProfilePic());
+                    createdBy.put("gender",userEntity.getGender());
+                    node.set("createdBy",createdBy);
+
+
+                    ObjectNode assignedTo  = objectMapper.createObjectNode();
+                    userEntity= PlanbowUtility.getUserEntity(userEntities,!StringUtils.isEmpty(e.getAssignedTo())? Long.parseLong(e.getAssignedTo()):0L);
+                    if(userEntity!=null){
+                        assignedTo.put("id",userEntity.getId());
+                        assignedTo.put("name",userEntity.getName());
+                        assignedTo.put("email",userEntity.getEmail());
+                        assignedTo.put("profilePic",userEntity.getProfilePic());
+                        assignedTo.put("gender",userEntity.getGender());
+                        node.set("assignedTo",assignedTo);
+                    }else{
+                        node.set("assignedTo",objectMapper.valueToTree(null));
+                    }
                     data.add(node);
                 }
         );

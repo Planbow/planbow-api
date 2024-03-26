@@ -21,6 +21,7 @@ public class PlanboardNodes implements BaseDocument {
 
     private String userId; // createdBy
     private String assignedTo;
+    private Instant endDate;
     private Instant createdOn;
     private Instant modifiedOn;
     private boolean active;
