@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.planbow.documents.planboard.ActionItemAggregation;
 import com.planbow.documents.planboard.ActionItems;
 import com.planbow.documents.planboard.PlanboardNodes;
+import com.planbow.documents.planboard.Tasks;
 import com.planbow.entities.user.UserEntity;
 import com.planbow.repository.ActionItemApiRepository;
 import com.planbow.repository.PlanbowHibernateRepository;
@@ -26,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -69,8 +71,10 @@ public class ActionItemApiService {
         if(CollectionUtils.isEmpty(actionItems))
             return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"No action items found for this node");
 
-        List<String> userIds  = actionItems.stream().map(ActionItemAggregation::getUserId).collect(Collectors.toList());
-        List<UserEntity> userEntities = planbowHibernateRepository.getUserEntities(null,userIds);
+        Set<String> assignedTos=actionItems.stream().map(ActionItemAggregation::getAssignedTo).filter(assignedTo ->!StringUtils.isEmpty(assignedTo)).collect(Collectors.toSet());
+        Set<String> userIds  = actionItems.stream().map(ActionItemAggregation::getUserId).collect(Collectors.toSet());
+        assignedTos.addAll(userIds);
+        List<UserEntity> userEntities = planbowHibernateRepository.getUserEntities(null,new ArrayList<>(assignedTos));
         ArrayNode data  = objectMapper.createArrayNode();
         actionItems.forEach(e->{
                     Set<String> ids = e.getChildren().stream().map(ActionItems::getId).collect(Collectors.toSet());
@@ -103,6 +107,19 @@ public class ActionItemApiService {
                     createdBy.put("gender",userEntity.getGender());
                     node.set("createdBy",createdBy);
 
+                    ObjectNode assignedTo  = objectMapper.createObjectNode();
+                    userEntity= PlanbowUtility.getUserEntity(userEntities,!StringUtils.isEmpty(e.getAssignedTo())? Long.parseLong(e.getAssignedTo()):0L);
+                    if(userEntity!=null){
+                        assignedTo.put("id",userEntity.getId());
+                        assignedTo.put("name",userEntity.getName());
+                        assignedTo.put("email",userEntity.getEmail());
+                        assignedTo.put("profilePic",userEntity.getProfilePic());
+                        assignedTo.put("gender",userEntity.getGender());
+                        node.set("assignedTo",assignedTo);
+                    }else{
+                        node.set("assignedTo",objectMapper.valueToTree(null));
+                    }
+
                     data.add(node);
                 }
         );
@@ -131,6 +148,11 @@ public class ActionItemApiService {
         String endDate  = requestJsonHandler.getStringValue("endDate");
         if(!StringUtils.isEmpty(endDate)){
             actionItems.setEndDate(formatStringToInstant(endDate,null));
+        }
+
+        String assignedTo  = requestJsonHandler.getStringValue("assignedTo");
+        if(!StringUtils.isEmpty(assignedTo)){
+            actionItems.setAssignedTo(assignedTo);
         }
 
         actionItems.setActive(true);
@@ -177,6 +199,12 @@ public class ActionItemApiService {
         if(!StringUtils.isEmpty(endDate)){
             actionItems.setEndDate(formatStringToInstant(endDate,null));
         }
+
+        String assignedTo  = requestJsonHandler.getStringValue("assignedTo");
+        if(!StringUtils.isEmpty(assignedTo)){
+            actionItems.setAssignedTo(assignedTo);
+        }
+
         actionItems.setModifiedOn(Instant.now());
         actionItems  = actionItemApiRepository.saveOrUpdateActionItems(actionItems);
         ObjectNode data  = objectMapper.createObjectNode();

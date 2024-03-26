@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static com.planbow.utility.PlanbowUtility.isInteger;
+
 @RestController
 @RequestMapping("/action-items")
 public class ActionItemApiController {
@@ -59,6 +61,11 @@ public class ActionItemApiController {
         String title  = requestJsonHandler.getStringValue("title");
         if(StringUtils.isEmpty(title))
             return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide title");
+        String assignedTo  = requestJsonHandler.getStringValue("assignedTo");
+        if(!org.apache.commons.lang3.StringUtils.isEmpty(assignedTo)){
+            if(!isInteger(assignedTo))
+                return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Provided assignedTo must be in number");
+        }
         return actionItemApiService.addActionItem(userId.trim(),planboardId.trim(),nodeId.trim(),title.trim(),requestJsonHandler);
     }
 
@@ -73,6 +80,11 @@ public class ActionItemApiController {
         if(!StringUtils.isEmpty(priority)){
             if(!priority.equals(ActionItems.PRIORITY_LOW) && !priority.equals(ActionItems.PRIORITY_MEDIUM) && !priority.equals(ActionItems.PRIORITY_HIGH) && ! priority.equals(ActionItems.PRIORITY_CRITICAL))
                 return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide correct priority must be low , medium , high and critical only");
+        }
+        String assignedTo  = requestJsonHandler.getStringValue("assignedTo");
+        if(!org.apache.commons.lang3.StringUtils.isEmpty(assignedTo)){
+            if(!isInteger(assignedTo))
+                return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Provided assignedTo must be in number");
         }
         return actionItemApiService.updateActionItem(userId.trim(),actionItemId.trim(),requestJsonHandler);
     }

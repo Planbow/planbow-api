@@ -16,6 +16,7 @@ public class ActionItemAggregation {
     private String planboardId;
     private String parentId;
     private String userId; //createdBy
+    private String assignedTo; //createdBy
 
     private String status;
     private String priority;
