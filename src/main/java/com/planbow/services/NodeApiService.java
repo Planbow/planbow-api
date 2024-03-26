@@ -6,11 +6,15 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.planbow.documents.planboard.NodeMetaData;
 import com.planbow.documents.planboard.Planboard;
 import com.planbow.documents.planboard.PlanboardNodes;
+import com.planbow.documents.planboard.PlanboardNodesAggregation;
+import com.planbow.entities.user.UserEntity;
 import com.planbow.repository.NodeApiRepository;
 import com.planbow.repository.PlanboardApiRepository;
+import com.planbow.repository.PlanbowHibernateRepository;
 import com.planbow.util.json.handler.request.RequestJsonHandler;
 import com.planbow.util.json.handler.response.ResponseJsonHandler;
 import com.planbow.util.json.handler.response.util.ResponseJsonUtil;
+import com.planbow.utility.PlanbowUtility;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +24,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.planbow.utility.PlanbowUtility.formatStringToInstant;
 
@@ -32,7 +40,13 @@ public class NodeApiService {
     private ObjectMapper objectMapper;
     private NodeApiRepository nodeApiRepository;
     private PlanboardApiRepository planboardApiRepository;
+    private PlanbowHibernateRepository planbowHibernateRepository;
 
+
+    @Autowired
+    public void setPlanbowHibernateRepository(PlanbowHibernateRepository planbowHibernateRepository) {
+        this.planbowHibernateRepository = planbowHibernateRepository;
+    }
 
     @Autowired
     public void setPlanboardApiRepository(PlanboardApiRepository planboardApiRepository) {
@@ -125,6 +139,58 @@ public class NodeApiService {
         ObjectNode data  = objectMapper.createObjectNode();
         data.put("nodeId",planboardNodes.getId());
         return ResponseJsonUtil.getResponse(HttpStatus.OK,data);
+    }
+    public ResponseEntity<ResponseJsonHandler> getNodeDetails(String userId, String nodeId) {
+        PlanboardNodes planboardNodes  = nodeApiRepository.getPlanboardNode(nodeId);
+
+        if(planboardNodes==null)
+            return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"Provided nodeId does not exists");
+
+
+        Set<String> userIds=new HashSet<>();
+         userIds.add(planboardNodes.getUserId());
+        if(!StringUtils.isEmpty(planboardNodes.getAssignedTo()))
+            userIds.add(planboardNodes.getAssignedTo());
+
+        List<UserEntity> userEntities = planbowHibernateRepository.getUserEntities(null,new ArrayList<>(userIds));
+
+        ObjectNode node  = objectMapper.createObjectNode();
+        node.put("id",planboardNodes.getId());
+        node.put("title",planboardNodes.getTitle());
+        node.put("description",planboardNodes.getDescription());
+        node.put("parentId",planboardNodes.getParentId());
+        node.put("planboardId",planboardNodes.getPlanboardId());
+        node.set("createdOn",objectMapper.valueToTree(planboardNodes.getCreatedOn()));
+        node.set("endDate",objectMapper.valueToTree(planboardNodes.getEndDate()));
+        node.set("metaData",objectMapper.valueToTree(planboardNodes.getMetaData()));
+
+        node.put("actionItems",planboardApiRepository.getActionItemCount(planboardNodes.getPlanboardId(),planboardNodes.getId()));
+        node.put("subTasks",planboardApiRepository.getTaskCount(planboardNodes.getPlanboardId(),planboardNodes.getId()));
+        node.put("events",0);
+
+        ObjectNode createdBy  = objectMapper.createObjectNode();
+        UserEntity userEntity  = PlanbowUtility.getUserEntity(userEntities,Long.valueOf(planboardNodes.getUserId()));
+        createdBy.put("id",userEntity.getId());
+        createdBy.put("name",userEntity.getName());
+        createdBy.put("email",userEntity.getEmail());
+        createdBy.put("profilePic",userEntity.getProfilePic());
+        createdBy.put("gender",userEntity.getGender());
+        node.set("createdBy",createdBy);
+
+
+        ObjectNode assignedTo  = objectMapper.createObjectNode();
+        userEntity= PlanbowUtility.getUserEntity(userEntities,!StringUtils.isEmpty(planboardNodes.getAssignedTo())? Long.parseLong(planboardNodes.getAssignedTo()):0L);
+        if(userEntity!=null){
+            assignedTo.put("id",userEntity.getId());
+            assignedTo.put("name",userEntity.getName());
+            assignedTo.put("email",userEntity.getEmail());
+            assignedTo.put("profilePic",userEntity.getProfilePic());
+            assignedTo.put("gender",userEntity.getGender());
+            node.set("assignedTo",assignedTo);
+        }else{
+            node.set("assignedTo",objectMapper.valueToTree(null));
+        }
+        return ResponseJsonUtil.getResponse(HttpStatus.OK,node);
     }
 
 

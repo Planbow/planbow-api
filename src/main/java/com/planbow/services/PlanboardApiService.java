@@ -330,8 +330,6 @@ public class PlanboardApiService {
                     node.put("subTasks",planboardApiRepository.getTaskCount(e.getPlanboardId(),e.getId()));
                     node.put("events",0);
 
-
-
                     ObjectNode createdBy  = objectMapper.createObjectNode();
                     UserEntity userEntity  = PlanbowUtility.getUserEntity(userEntities,Long.valueOf(e.getUserId()));
                     createdBy.put("id",userEntity.getId());

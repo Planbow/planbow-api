@@ -45,6 +45,17 @@ public class NodeApiController {
         return nodeApiService.setNodesMetaData(userId.trim(),planboardId.trim(),planboardNodes);
     }
 
+
+    @PostMapping("/get-node-details")
+    public ResponseEntity<ResponseJsonHandler> getNodeDetails(@RequestBody RequestJsonHandler requestJsonHandler){
+        String userId  = requestJsonHandler.getStringValue("userId");
+        String nodeId  = requestJsonHandler.getStringValue("nodeId");
+        if(StringUtils.isEmpty(nodeId))
+            return ResponseJsonUtil.getResponse(HttpStatus.BAD_REQUEST,"Please provide nodeId");
+        return nodeApiService.getNodeDetails(userId.trim(),nodeId.trim());
+    }
+
+
     @PostMapping("/add-node")
     public ResponseEntity<ResponseJsonHandler> addNode(@RequestBody RequestJsonHandler requestJsonHandler){
         String userId  = requestJsonHandler.getStringValue("userId");
