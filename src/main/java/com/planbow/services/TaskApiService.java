@@ -27,7 +27,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.planbow.documents.planboard.ActionItems.STATUS_IN_TODO;
@@ -103,6 +106,12 @@ public class TaskApiService {
         if(!StringUtils.isEmpty(endDate)){
             tasks.setEndDate(formatStringToInstant(endDate,null));
         }
+
+        String assignedTo  = requestJsonHandler.getStringValue("assignedTo");
+        if(!StringUtils.isEmpty(assignedTo)){
+            tasks.setAssignedTo(assignedTo);
+        }
+
         tasks.setActive(true);
         tasks.setCreatedOn(Instant.now());
         tasks.setModifiedOn(Instant.now());
@@ -126,10 +135,10 @@ public class TaskApiService {
         if(CollectionUtils.isEmpty(tasks))
             return ResponseJsonUtil.getResponse(HttpStatus.NOT_FOUND,"No task found for given actionItemId");
         ArrayNode data  = objectMapper.createArrayNode();
-
-        List<String> userIds  = tasks.stream().map(Tasks::getUserId).collect(Collectors.toList());
-        List<UserEntity> userEntities = planbowHibernateRepository.getUserEntities(null,userIds);
-
+        Set<String> assignedTos=tasks.stream().map(Tasks::getAssignedTo).filter(assignedTo ->!StringUtils.isEmpty(assignedTo)).collect(Collectors.toSet());
+        Set<String> userIds  = tasks.stream().map(Tasks::getUserId).collect(Collectors.toSet());
+        assignedTos.addAll(userIds);
+        List<UserEntity> userEntities = planbowHibernateRepository.getUserEntities(null,new ArrayList<>(assignedTos));
         tasks.forEach(e->{
             ObjectNode node  = objectMapper.createObjectNode();
 
@@ -164,6 +173,19 @@ public class TaskApiService {
             createdBy.put("gender",userEntity.getGender());
             node.set("createdBy",createdBy);
 
+
+            ObjectNode assignedTo  = objectMapper.createObjectNode();
+            userEntity= PlanbowUtility.getUserEntity(userEntities,!StringUtils.isEmpty(e.getAssignedTo())? Long.parseLong(e.getAssignedTo()):0L);
+            if(userEntity!=null){
+                assignedTo.put("id",userEntity.getId());
+                assignedTo.put("name",userEntity.getName());
+                assignedTo.put("email",userEntity.getEmail());
+                assignedTo.put("profilePic",userEntity.getProfilePic());
+                assignedTo.put("gender",userEntity.getGender());
+                node.set("assignedTo",assignedTo);
+            }else{
+                node.set("assignedTo",objectMapper.valueToTree(null));
+            }
             data.add(node);
 
         });
@@ -216,6 +238,13 @@ public class TaskApiService {
         }else{
             tasks.setStatus(STATUS_IN_TODO);
         }
+
+
+        String assignedTo  = requestJsonHandler.getStringValue("assignedTo");
+        if(!StringUtils.isEmpty(assignedTo)){
+            tasks.setAssignedTo(assignedTo);
+        }
+
         tasks.setModifiedOn(Instant.now());
         tasks  = taskApiRepository.saveOrUpdateTasks(tasks);
 

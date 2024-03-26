@@ -5,6 +5,8 @@ import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Set;
 
 
 @Data
@@ -27,6 +29,8 @@ public class Tasks implements BaseDocument {
     private Instant endDate;
 
     private String userId; //createdBy
+    private String assignedTo;
+
     private Instant createdOn;
     private Instant modifiedOn;
     private boolean active;
