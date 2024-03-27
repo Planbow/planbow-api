@@ -10,6 +10,7 @@ import com.planbow.documents.planboard.Planboard;
 import com.planbow.documents.workspace.Workspace;
 import com.planbow.entities.user.UserEntity;
 import com.planbow.repository.GlobalApiRepository;
+import com.planbow.repository.PlanboardApiRepository;
 import com.planbow.repository.PlanbowHibernateRepository;
 import com.planbow.repository.WorkspaceApiRepository;
 import com.planbow.util.json.handler.request.RequestJsonHandler;
@@ -37,6 +38,13 @@ public class WorkspaceApiService {
     private GlobalApiRepository globalApiRepository;
     private PlanbowHibernateRepository planbowHibernateRepository;
 
+    private PlanboardApiRepository planboardApiRepository;
+
+
+    @Autowired
+    public void setPlanboardApiRepository(PlanboardApiRepository planboardApiRepository) {
+        this.planboardApiRepository = planboardApiRepository;
+    }
 
     @Autowired
     public void setPlanbowHibernateRepository(PlanbowHibernateRepository planbowHibernateRepository) {
@@ -130,8 +138,13 @@ public class WorkspaceApiService {
                 pbNode.put("createdOn", PlanbowUtility.formatInstantToString(e.getCreatedOn(),null));
 
                 pbNode.put("events", workspaceApiRepository.getEventCounts(e.getId()));
-                pbNode.put("actionItems",0);
-                pbNode.put("focusAreas",0);
+                pbNode.put("actionItems",planboardApiRepository.getActionItemCount(e.getId(),e.getId()));
+                pbNode.put("focusAreas",planboardApiRepository.getPlanboardNodesCount(e.getId()));
+
+
+                //node.put("actionItems",planboardApiRepository.getActionItemCount(e.getPlanboardId(),e.getId()));
+                //node.put("subTasks",planboardApiRepository.getTaskCount(e.getPlanboardId(),e.getId()));
+
 
                 ArrayNode members  =objectMapper.createArrayNode();
                 if(!CollectionUtils.isEmpty(e.getMembers())){

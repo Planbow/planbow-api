@@ -189,10 +189,21 @@ public class PlanboardApiService {
         planboard.setGeography(geography);
 
         planboard.setEndDate(formatStringToInstant(endDate,null));
-        if(!CollectionUtils.isEmpty(members)){
+       /* if(!CollectionUtils.isEmpty(members)){
             members.forEach(e-> e.setStatus(Members.STATUS_PENDING));
             planboard.setMembers(members);
-        }
+        }*/
+        List<Members> membersList  = new ArrayList<>();
+        membersList.add(setUpMembers(Members.STATUS_ACCEPTED,"Contributor","92"));
+        membersList.add(setUpMembers(Members.STATUS_ACCEPTED,"Contributor","99"));
+        membersList.add(setUpMembers(Members.STATUS_ACCEPTED,"Contributor","101"));
+        membersList.add(setUpMembers(Members.STATUS_ACCEPTED,"Contributor","103"));
+        membersList.add(setUpMembers(Members.STATUS_ACCEPTED,"Viewer","105"));
+        membersList.add(setUpMembers(Members.STATUS_ACCEPTED,"Viewer","106"));
+        membersList.add(setUpMembers(Members.STATUS_ACCEPTED,"Viewer","107"));
+        membersList.add(setUpMembers(Members.STATUS_ACCEPTED,"Viewer","108"));
+        membersList.add(setUpMembers(Members.STATUS_PENDING,"Viewer","13"));
+        planboard.setMembers(membersList);
 
         planboard.setName(name);
         planboard.setDescription(description);

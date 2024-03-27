@@ -206,4 +206,12 @@ public class PlanbowUtility {
         return now.isAfter(endDate);
     }
 
+    public static Members setUpMembers(String status,String role,String userId){
+        Members member  = new Members();
+        member.setRole(role);
+        member.setStatus(status);
+        member.setUserId(userId);
+        return member;
+    }
+
 }

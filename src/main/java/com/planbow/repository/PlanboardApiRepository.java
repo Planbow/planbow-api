@@ -156,6 +156,14 @@ public class PlanboardApiRepository extends MongoDbRepository {
         return mongoTemplate.count(query, ActionItems.class);
     }
 
+    public long getPlanboardNodesCount(String planboardId){
+        Query query = new Query();
+        Criteria criteria= Criteria.where("active").is(true);
+        criteria= criteria.and("planboardId").is(planboardId);
+        query.addCriteria(criteria);
+        return mongoTemplate.count(query, PlanboardNodes.class);
+    }
+
     public long getTaskCount(String planboardId,String nodeId){
         Query query = new Query();
         Criteria criteria= Criteria.where("active").is(true);
