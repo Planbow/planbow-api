@@ -349,7 +349,6 @@ public class PlanboardApiService {
                     createdBy.put("gender",userEntity.getGender());
                     node.set("createdBy",createdBy);
 
-
                     ObjectNode assignedTo  = objectMapper.createObjectNode();
                     userEntity= PlanbowUtility.getUserEntity(userEntities,!StringUtils.isEmpty(e.getAssignedTo())? Long.parseLong(e.getAssignedTo()):0L);
                     if(userEntity!=null){
