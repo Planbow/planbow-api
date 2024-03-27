@@ -341,7 +341,7 @@ public class PlanboardApiService {
                     node.put("events",0);
 
                     ObjectNode createdBy  = objectMapper.createObjectNode();
-                    UserEntity userEntity  = PlanbowUtility.getUserEntity(userEntities,!StringUtils.isEmpty(e.getUserId())? Long.parseLong(e.getUserId()):0L);
+                    UserEntity userEntity  = PlanbowUtility.getUserEntity(userEntities,!StringUtils.isEmpty(e.getUserId()) ? Long.parseLong(e.getUserId()):0L);
                     createdBy.put("id",userEntity.getId());
                     createdBy.put("name",userEntity.getName());
                     createdBy.put("email",userEntity.getEmail());

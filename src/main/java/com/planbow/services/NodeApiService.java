@@ -114,7 +114,7 @@ public class NodeApiService {
         planboardNodes.setTitle(title);
         planboardNodes.setDescription(description);
         planboardNodes.setParentId(parentId);
-
+        planboardNodes.setUserId(userId);
         if(nodeMetaData==null){
             nodeMetaData  = new NodeMetaData();
         }
