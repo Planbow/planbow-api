@@ -221,8 +221,7 @@ public class PlanboardApiService {
         initializeStrategicNodes(planboard);
         // Initialize Event
         initializeEvents(planboard,schedule);
-        // Invite Members
-        inviteMembers(planboard,schedule);
+        // Invite Members  inviteMembers(planboard,schedule);
         // Initialize Attachment For Planboard
         if(multipartFiles!=null){
             initializeAttachments(finalPlanboard,multipartFiles);
@@ -342,7 +341,7 @@ public class PlanboardApiService {
                     node.put("events",0);
 
                     ObjectNode createdBy  = objectMapper.createObjectNode();
-                    UserEntity userEntity  = PlanbowUtility.getUserEntity(userEntities,Long.valueOf(e.getUserId()));
+                    UserEntity userEntity  = PlanbowUtility.getUserEntity(userEntities,!StringUtils.isEmpty(e.getUserId())? Long.parseLong(e.getUserId()):0L);
                     createdBy.put("id",userEntity.getId());
                     createdBy.put("name",userEntity.getName());
                     createdBy.put("email",userEntity.getEmail());

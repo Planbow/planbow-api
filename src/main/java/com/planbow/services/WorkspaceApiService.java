@@ -138,7 +138,7 @@ public class WorkspaceApiService {
                 pbNode.put("createdOn", PlanbowUtility.formatInstantToString(e.getCreatedOn(),null));
 
                 pbNode.put("events", workspaceApiRepository.getEventCounts(e.getId()));
-                pbNode.put("actionItems",planboardApiRepository.getActionItemCount(e.getId(),e.getId()));
+                pbNode.put("actionItems",planboardApiRepository.getActionItemCount(e.getId(),null));
                 pbNode.put("focusAreas",planboardApiRepository.getPlanboardNodesCount(e.getId()));
 
 

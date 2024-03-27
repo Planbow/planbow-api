@@ -151,7 +151,8 @@ public class PlanboardApiRepository extends MongoDbRepository {
         Query query = new Query();
         Criteria criteria= Criteria.where("active").is(true);
         criteria= criteria.and("planboardId").is(planboardId);
-        criteria= criteria.and("nodeId").is(nodeId);
+        if(!StringUtils.isEmpty(nodeId))
+            criteria= criteria.and("nodeId").is(nodeId);
         query.addCriteria(criteria);
         return mongoTemplate.count(query, ActionItems.class);
     }
