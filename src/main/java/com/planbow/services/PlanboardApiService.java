@@ -743,7 +743,7 @@ public class PlanboardApiService {
             geography=" ";
         String query =
                 """
-                        Provide Action items for {nodeTitle} in the context of {domain} business focusing on {subdomain} focusing in {geography} market. Key departments to focus on {scope}
+                        Provide Only 3 Action items for {nodeTitle} in the context of {domain} business focusing on {subdomain} focusing in {geography} market. Key departments to focus on {scope}
                         Provide the results in array of object that contains title and description as string
                         """;
 
